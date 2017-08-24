@@ -1,7 +1,14 @@
-#!/bin/sh
+#!/bin/bash
+
+set -xv
 
 ## Make sure HAPCUT, NGMLR, SURVIVOR-LRSIM, SNIFFLES, SAMTOOLS are in your path
 
-SNP_DIST=100
+SNPDIST=100
 BASE=base.fa
-SURVIVOR-LRSIM 0 base.fa simul.param 0 mut $SNPDIST
+PARAM=simul.param
+BASE=base.fa
+
+mkdir -p data
+
+SURVIVOR-LRSIM 0 $BASE $PARAM 0 data/mut $SNPDIST
