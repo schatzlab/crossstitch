@@ -49,11 +49,11 @@ then
 fi
 
 
-if [ ! -r data/pbAll.vcf ]
+if [ ! -r data/pbAll.sniffles.vcf ]
 then
   echo "Calling variants with Sniffles"
   READSTOPHASE=1000
-  sniffles -m data/pbAll.bam -v data/pbAll.vcf --cluster --genotype -n $READSTOPHASE
+  sniffles -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype -n $READSTOPHASE
 fi
 
 
