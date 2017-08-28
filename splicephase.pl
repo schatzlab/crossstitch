@@ -8,24 +8,23 @@ my $SNIFFLESVCFFILE = shift or die $USAGE;
 my $READHAIRSFILE   = shift or die $USAGE;
 my $OUTVCFFILE      = shift or die $USAGE;
 
-
 open PHASEDVCF,   $PHASEDVCFFILE   or die "Cant open $PHASEDVCFFILE ($!)\n";
 open SNIFFLESVCF, $SNIFFLESVCFFILE or die "Cant open $SNIFFLESVCFFILE ($!)\n";
 open READHAIRS,   $READHAIRSFILE   or die "Cant open $READHAIRSFILE ($!)\n";
-open OUTVCF,       "> $OUTVCFFILE" or die "Cant open $OUTVCFFILE ($!)\n";
-
-
-
+open OUTVCF,      "> $OUTVCFFILE"  or die "Cant open $OUTVCFFILE ($!)\n";
+open READPHASE,   "> $OUTVCFFILE.readphase" or die "Cant open $OUTVCFFILE.readphase ($!)\n";
+open SVPHASE,     "> $OUTVCFFILE.svphase"   or die "Cant open $OUTVCFFILE.svphase ($!)\n";
 
 
 ## Load the phased VCF file
 ###############################################################################
 
 my @vcfheader;
-my $vcfdata;
+my %vcfdata;
 
 my $vcfheaderlines = 0;
 my $vcfdatalines = 0;
+my %vcfidlookup;
 
 while (<PHASEDVCF>)
 {
@@ -37,6 +36,8 @@ while (<PHASEDVCF>)
   }
   else
   {
+    $vcfdatalines++;
+
     my ($chrom, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = split /\s+/, $_; 
     my $v;
     $v->{chrom}  = $chrom;
@@ -49,9 +50,13 @@ while (<PHASEDVCF>)
     $v->{info}   = $info;
     $v->{format} = $format;
     $v->{sample} = $sample;
+    $v->{vcfidx} = $vcfdatalines;
 
-    $vcfdata->{$chrom}->{$pos} = $v;
-    $vcfdatalines++;
+    my ($genotype, $other) = split /:/, $sample;
+    $v->{genotype} = $genotype;
+
+    $vcfdata{$chrom}->{$pos} = $v;
+    $vcfidlookup{$vcfdatalines} = $v;
   }
 }
 
@@ -61,8 +66,8 @@ print "Loaded $vcfheaderlines header lines and $vcfdatalines variants\n";
 ## Load Sniffles SV calls
 ###############################################################################
 
-my $readstophase;
-my $snifflesvariants;
+my %readstophase;
+my %snifflesvariants;
 my $sniffleslines = 0;
 while (<SNIFFLESVCF>)
 {
@@ -87,6 +92,9 @@ while (<SNIFFLESVCF>)
     $v->{sample} = $sample;
     $v->{reads}  = [];
 
+    my ($genotype, $other) = split /:/, $sample;
+    $v->{genotype} = $genotype;
+
     my @infofields = split /;/, $info;
     foreach my $f (@infofields)
     {
@@ -96,38 +104,200 @@ while (<SNIFFLESVCF>)
          my @reads = split /,/, $f;
          foreach my $r (@reads)
          {
-           $readstophase->{$r}->{num}++;
-           $readstophase->{$r}->{sv}->{$chrom}->{$pos}->{phase} = -1;
+           $readstophase{$r}->{num}++;
+           $readstophase{$r}->{hap1} = 0;
+           $readstophase{$r}->{hap2} = 0;
+           $readstophase{$r}->{snps} = "";
+
            push @{$v->{reads}}, $r;
          }
       }
     }
 
-    $snifflesvariants->{$chrom}->{$pos} = $v;
+    $snifflesvariants{$chrom}->{$pos} = $v;
     $sniffleslines++;
   }
 }
 
-my $readcount = scalar keys %$readstophase;
+my $readcount = scalar keys %readstophase;
 print "Loaded $sniffleslines sniffles variants involving $readcount reads\n";
-
-foreach my $r (sort keys %$readstophase)
-{
-	my $num = $readstophase->{$r}->{num};
-	print "  $r $num\n";
-}
-
 
 ## Determine the read phase information
 ###############################################################################
 
 my $hairslines = 0;
+my $foundhairs = 0;
 while (<READHAIRS>)
 {
   $hairslines++;
+  chomp;
+  my @fields = split /\s+/, $_;
+  my $rid = $fields[1];
+
+  if (exists $readstophase{$rid})
+  {
+    $readstophase{$rid}->{hairs}++;
+    $foundhairs++ if ($readstophase{$rid}->{hairs} == 1);
+
+    ## Count how many calls for hap1 vs hap2 at informative snps
+    my $hap1 = 0; 
+    my $hap2 = 0;
+
+    my $blocks = $fields[0];
+    for (my $b = 0; $b < $blocks; $b++)
+    {
+      my $sidx = $fields[2+$b*2];
+      my $allelestr = $fields[2+$b*2+1];
+
+      my @alleles = split //, $allelestr;
+
+      for (my $aidx = 0; $aidx < scalar @alleles; $aidx++)
+      {
+        my $vcfid = $sidx + $aidx;
+        my $allele = $alleles[$aidx]; # 0 or 1
+        
+        ## lookup if this allele corresponds to hap1 or hap2
+        my $v = $vcfidlookup{$vcfid};
+        my $genotype = $v->{genotype};
+
+        my $chr = $v->{chrom};
+        my $pos = $v->{pos};
+        my $hap = "A";
+
+
+        ## Only process the informative genotypes
+        if ($genotype eq "0|1")
+        {
+          if ($allele == 0) { $hap1++; $hap="A"; }
+          else              { $hap2++; $hap="B"; }
+        }
+        elsif ($genotype eq "1|0")
+        {
+          if ($allele == 1) { $hap1++;  $hap = "A"}
+          else              { $hap2++;  $hap = "B"}
+        }
+
+        $readstophase{$rid}->{snps} .= " $chr:$pos:$allele:$hap";
+      }
+    }
+
+    $readstophase{$rid}->{hap1} += $hap1;
+    $readstophase{$rid}->{hap2} += $hap2;
+  }
 }
 
-print "Loaded $hairslines hairs records\n";
+print "Loaded $hairslines hairs records, found $foundhairs of $readcount involved in SVs\n";
 
 
-print OUTVCF "not done";
+## Print phase status of reads to the log file
+###############################################################################
+
+print READPHASE "#READID\tNUMSV\t|\tHAP1\tHAP2\t| HAP HAPR | SNPS\n";
+foreach my $rid (sort {substr($a, 6)  <=> substr($b, 6)} keys %readstophase)
+{
+  my $numsv = $readstophase{$rid}->{num};
+  my $hap1  = $readstophase{$rid}->{hap1};
+  my $hap2  = $readstophase{$rid}->{hap2};
+  my $hap1r = sprintf("%7.02f  ", ($hap1+$hap2>0) ? 100*$hap1 / ($hap1+$hap2) : 0);
+  my $snps  = $readstophase{$rid}->{snps};
+  my $hap = ($hap1 >= $hap2) ? "hapA" : "hapB";
+  print READPHASE "$rid\t$numsv\t|\t$hap1\t$hap2\t| $hap $hap1r|$snps\n";
+}
+
+## Process Sniffles SVs
+###############################################################################
+
+print SVPHASE "chr:pos:genotype\t|\tnumreads\thap1\thap2\t| hap hap1r\n";
+my $phasedsvs = 0;
+my $allsniffles = 0;
+
+foreach my $chr (sort keys %snifflesvariants)
+{
+  foreach my $pos (sort {$a <=> $b} keys %{$snifflesvariants{$chr}})
+  {
+    $allsniffles++;
+    my $v = $snifflesvariants{$chr}->{$pos};
+
+    my $hap1 = 0;
+    my $hap2 = 0;
+
+    my $numreads = 0;
+
+    foreach my $rid (@{$v->{reads}})
+    {
+      $numreads++;
+      $hap1  += $readstophase{$rid}->{hap1};
+      $hap2  += $readstophase{$rid}->{hap2};
+    }
+
+    my $hap1r = sprintf("%7.02f  ", ($hap1+$hap2>0) ? 100*$hap1 / ($hap1+$hap2) : 0);
+    my $hap = ($hap1 >= $hap2) ? "hapA" : "hapB";
+    my $genotype = $v->{genotype};
+  
+    print "Analyzing $chr:$pos:$genotype\t|\t$numreads\t$hap1\t$hap2\t| $hap $hap1r\n";
+    print SVPHASE "$chr:$pos:$genotype\t|\t$numreads\t$hap1\t$hap2\t| $hap $hap1r\n";
+
+    if (($genotype eq "0/1") ||
+        ($genotype eq "1/0") ||
+        ($genotype eq "1/1"))
+    {
+      ## fix the genotype call
+      if ($genotype eq "1/1")
+      {
+        $genotype = "1|1";
+      }
+      elsif ($genotype eq "0/1")
+      {
+        if ($hap eq "hapA") { $genotype = "?"; }
+        else                { $genotype = "?"; }
+      }
+      elsif ($genotype eq "1/0")
+      {
+        if ($hap eq "hapA") { $genotype = "?"; }
+        else                { $genotype = "?"; }
+      }
+      else
+      {
+        die "Unexpected case: $genotype";
+      }
+      
+      ## Todo: Do some sanity checks
+
+      # Now splice the phased variant in with the other variants
+      $vcfdata{$chr}->{$pos} = $v;
+      $phasedsvs++;
+    }
+  }
+}
+
+print "Finished phasing $phasedsvs svs of $allsniffles\n";
+
+
+## Print output
+###############################################################################
+
+# Print the old header
+foreach my $h (@vcfheader)
+{
+  print OUTVCF "$h\n";
+}
+
+# Now print the updated variants
+foreach my $chrom (sort keys %vcfdata)
+{
+  foreach my $pos (sort {$a <=> $b} keys %{$vcfdata{$chrom}})
+  {
+    my $v = $vcfdata{$chrom}->{$pos};
+
+    my $id     = $v->{id};
+    my $ref    = $v->{ref};
+    my $alt    = $v->{alt};
+    my $qual   = $v->{qual};
+    my $filter = $v->{filter};
+    my $info   = $v->{info};
+    my $format = $v->{format};
+    my $sample = $v->{sample};
+
+    print OUTVCF "$chrom\t$pos\t$id\t$ref\t$alt\t$qual\t$filter\t$info\t$format\t$sample\n";
+  }
+}
