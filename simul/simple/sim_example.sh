@@ -5,7 +5,7 @@
 
 #set -xv
 
-SNPDIST=100
+SNPDIST=1000
 BASE=base.fa
 PARAM=simul.param
 BASE=base.fa
@@ -53,7 +53,7 @@ if [ ! -r data/pbAll.sniffles.vcf ]
 then
   echo "Calling variants with Sniffles"
   READSTOPHASE=1000
-  sniffles -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype -n $READSTOPHASE
+  /work-zfs/mschatz1/mschatz/build/Sniffles/bin/sniffles-core-1.0.6/sniffles -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype -n $READSTOPHASE
 fi
 
 
