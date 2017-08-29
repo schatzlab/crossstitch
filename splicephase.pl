@@ -68,6 +68,7 @@ print "Loaded $vcfheaderlines header lines and $vcfdatalines variants\n";
 
 my %readstophase;
 my %snifflesvariants;
+my %snifflesvarianttypes;
 my $sniffleslines = 0;
 while (<SNIFFLESVCF>)
 {
@@ -91,6 +92,8 @@ while (<SNIFFLESVCF>)
     $v->{format} = $format;
     $v->{sample} = $sample;
     $v->{reads}  = [];
+
+    $snifflesvarianttypes{$alt}++;
 
     my ($genotype, $other) = split /:/, $sample;
     $v->{genotype} = $genotype;
@@ -120,7 +123,14 @@ while (<SNIFFLESVCF>)
 }
 
 my $readcount = scalar keys %readstophase;
-print "Loaded $sniffleslines sniffles variants involving $readcount reads\n";
+print "Loaded $sniffleslines sniffles variants involving $readcount reads:";
+foreach my $t (sort keys %snifflesvarianttypes)
+{
+  my $n = $snifflesvarianttypes{$t};
+  print " $n $t";
+}
+print "\n";
+
 
 ## Determine the read phase information
 ###############################################################################
@@ -237,35 +247,32 @@ foreach my $chr (sort keys %snifflesvariants)
     print "Analyzing $chr:$pos:$genotype\t|\t$numreads\t$hap1\t$hap2\t| $hap $hap1r\n";
     print SVPHASE "$chr:$pos:$genotype\t|\t$numreads\t$hap1\t$hap2\t| $hap $hap1r\n";
 
-    if (($genotype eq "0/1") ||
-        ($genotype eq "1/0") ||
-        ($genotype eq "1/1"))
+    if (($v->{alt} eq "<INS>") || ($v->{alt} eq "<DEL>") || ($v->{alt} eq "<INV>"))
     {
-      ## fix the genotype call
-      if ($genotype eq "1/1")
+      if (($genotype eq "0/1") || ($genotype eq "1/1"))
       {
-        $genotype = "1|1";
-      }
-      elsif ($genotype eq "0/1")
-      {
-        if ($hap eq "hapA") { $genotype = "?"; }
-        else                { $genotype = "?"; }
-      }
-      elsif ($genotype eq "1/0")
-      {
-        if ($hap eq "hapA") { $genotype = "?"; }
-        else                { $genotype = "?"; }
-      }
-      else
-      {
-        die "Unexpected case: $genotype";
-      }
-      
-      ## Todo: Do some sanity checks
+        ## fix the genotype call
+        if ($genotype eq "1/1")
+        {
+          $genotype = "1|1";
+        }
+        elsif ($genotype eq "0/1")
+        {
+          if    ($hap eq "hapA") { $genotype = "1|0"; }
+          elsif ($hap eq "hapB") { $genotype = "0|1"; }
+        }
+        else
+        {
+          die "Unexpected case: $genotype";
+        }
 
-      # Now splice the phased variant in with the other variants
-      $vcfdata{$chr}->{$pos} = $v;
-      $phasedsvs++;
+        ## Todo: Do some sanity checks
+
+        # Now update the variant phase and splice into the others
+        substr($v->{sample}, 0, 3) = $genotype;
+        $vcfdata{$chr}->{$pos} = $v;
+        $phasedsvs++;
+      }
     }
   }
 }
