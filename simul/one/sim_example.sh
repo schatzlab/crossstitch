@@ -103,6 +103,18 @@ then
   freebayes -f base.fa data/illAll.bam -C $MIN_READS_FOR_SNP > data/illAll.vcf
 fi
 
+if [ ! -r data/pbsnps/chr1_snps.map ]
+then
+  mkdir -p data/pbsnps
+  cd data/pbsnps
+  ln -s ../pbAll.phased.vcf
+  ln -s ../../base.fa
+
+  echo "constructing diploid sequence with SNPs"
+  java -jar /work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar -id unknown -chr base.fa -vcf pbAll.phased.vcf
+  cd ../..
+fi
+
 
 if [ ! -r data/pbAll.hairs ]
 then
@@ -124,3 +136,21 @@ then
 fi
 
 
+if [ ! -r data/spliced.vcf ]
+then
+  echo "Splicing in phased SVs"
+  ../../splicephase.pl data/pbAll.phased.vcf data/pbAll.sniffles.vcf data/pbAll.hairs data/spliced.vcf
+fi
+
+
+if [ ! -r data/splicediploid/chr1_snps.map ]
+then
+  mkdir -p data/splicediploid
+  cd data/splicediploid
+  ln -s ../spliced.vcf
+  ln -s ../../base.fa
+
+  echo "constructing diploid sequence with SNPs and SVs"
+  java -jar /work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar -id unknown -chr base.fa -vcf spliced.vcf
+  cd ../..
+fi
