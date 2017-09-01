@@ -101,7 +101,7 @@ while (<SNIFFLESVCF>)
     my @infofields = split /;/, $info;
     foreach my $f (@infofields)
     {
-      if ($f =~ /^RNAMES/)
+      if ($f =~ /^RNAMES=/)
       {
          $f = substr($f, 7);
          my @reads = split /,/, $f;
@@ -114,6 +114,10 @@ while (<SNIFFLESVCF>)
 
            push @{$v->{reads}}, $r;
          }
+      }
+      elsif ($f =~ /^SEQ=/)
+      {
+        $v->{seq} = substr($f, 4);
       }
     }
 
@@ -271,6 +275,20 @@ foreach my $chr (sort keys %snifflesvariants)
         # Now update the variant phase and splice into the others
         substr($v->{sample}, 0, 3) = $genotype;
         $vcfdata{$chr}->{$pos} = $v;
+        if (exists $v->{seq})
+        {
+          if ($v->{alt} eq "<INS>")
+          {
+            $v->{alt} = "X" . $v->{seq};
+            $v->{ref} = ".";
+          }
+          elsif ($v->{alt} eq "<DEL>")
+          {
+            $v->{ref} = "X" . $v->{seq};
+            $v->{alt} = ".";
+          }
+        }
+
         $phasedsvs++;
       }
     }
