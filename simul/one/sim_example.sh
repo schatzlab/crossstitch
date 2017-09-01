@@ -53,7 +53,7 @@ if [ ! -r data/pbAll.sniffles.vcf ]
 then
   echo "Calling variants with Sniffles"
   READSTOPHASE=1000
-  /work-zfs/mschatz1/mschatz/build/Sniffles/bin/sniffles-core-1.0.6/sniffles -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype -n $READSTOPHASE
+  /work-zfs/mschatz1/mschatz/build/Sniffles/bin/sniffles-core-1.0.6/sniffles -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype --report_seq -n $READSTOPHASE
 fi
 
 
@@ -103,7 +103,7 @@ then
   freebayes -f base.fa data/illAll.bam -C $MIN_READS_FOR_SNP > data/illAll.vcf
 fi
 
-if [ ! -r data/pbsnps/chr1_snps.map ]
+if [ ! -r data/pbsnps/maternal.chain ]
 then
   mkdir -p data/pbsnps
   cd data/pbsnps
@@ -143,7 +143,7 @@ then
 fi
 
 
-if [ ! -r data/splicediploid/chr1_snps.map ]
+if [ ! -r data/splicediploid/maternal.chain ]
 then
   mkdir -p data/splicediploid
   cd data/splicediploid
