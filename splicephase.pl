@@ -221,7 +221,7 @@ foreach my $rid (sort {substr($a, 6)  <=> substr($b, 6)} keys %readstophase)
 ## Process Sniffles SVs
 ###############################################################################
 
-print SVPHASE "chr:pos:genotype\t|\tnumreads\thap1\thap2\t| hap hap1r\n";
+print SVPHASE "chr:pos:genotype\ttype\t|\tnumreads\thap1\thap2\t| hap hap1r\n";
 my $phasedsvs = 0;
 my $allsniffles = 0;
 
@@ -247,9 +247,10 @@ foreach my $chr (sort keys %snifflesvariants)
     my $hap1r = sprintf("%7.02f  ", ($hap1+$hap2>0) ? 100*$hap1 / ($hap1+$hap2) : 0);
     my $hap = ($hap1 >= $hap2) ? "hapA" : "hapB";
     my $genotype = $v->{genotype};
+    my $type = $v->{alt};
   
-    print "Analyzing $chr:$pos:$genotype\t|\t$numreads\t$hap1\t$hap2\t| $hap $hap1r\n";
-    print SVPHASE "$chr:$pos:$genotype\t|\t$numreads\t$hap1\t$hap2\t| $hap $hap1r\n";
+    print "Analyzing $chr:$pos:$genotype\t$type\t|\t$numreads\t$hap1\t$hap2\t| $hap $hap1r\n";
+    print SVPHASE "$chr:$pos:$genotype\t$type\t|\t$numreads\t$hap1\t$hap2\t| $hap $hap1r\n";
 
     if (($v->{alt} eq "<INS>") || ($v->{alt} eq "<DEL>") || ($v->{alt} eq "<INV>"))
     {
