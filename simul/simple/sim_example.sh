@@ -72,7 +72,7 @@ if [ ! -r data/illA.1.fq ]
 then
   samtools faidx data/mutA.fasta
   numpairs=`awk '{print $2*50/200}' data/mutA.fasta.fai`
-  echo "simulating $numpairs pairs for hapB"
+  echo "simulating $numpairs pairs for hapA"
   mason_simulator -ir data/mutA.fasta -n $numpairs -o data/illA.1.fq -or data/illA.2.fq --num-threads $THREADS
 fi
 

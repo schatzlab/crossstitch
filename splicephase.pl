@@ -248,23 +248,25 @@ foreach my $chr (sort keys %snifflesvariants)
     my $hap = ($hap1 >= $hap2) ? "hapA" : "hapB";
     my $genotype = $v->{genotype};
     my $type = $v->{alt};
-  
-    print "Analyzing $chr:$pos:$genotype\t$type\t|\t$numreads\t$hap1\t$hap2\t| $hap $hap1r\n";
-    print SVPHASE "$chr:$pos:$genotype\t$type\t|\t$numreads\t$hap1\t$hap2\t| $hap $hap1r\n";
+    
+    $hap = "hom" if ($genotype eq "1/1");
+
+    print "Analyzing $chr:$pos:$genotype\t$type\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\n";
 
     if (($v->{alt} eq "<INS>") || ($v->{alt} eq "<DEL>") || ($v->{alt} eq "<INV>"))
     {
       if (($genotype eq "0/1") || ($genotype eq "1/1"))
       {
+        my $newgenotype = $genotype;
         ## fix the genotype call
         if ($genotype eq "1/1")
         {
-          $genotype = "1|1";
+          $newgenotype = "1|1";
         }
         elsif ($genotype eq "0/1")
         {
-          if    ($hap eq "hapA") { $genotype = "1|0"; }
-          elsif ($hap eq "hapB") { $genotype = "0|1"; }
+          if    ($hap eq "hapA") { $newgenotype = "1|0"; }
+          elsif ($hap eq "hapB") { $newgenotype = "0|1"; }
         }
         else
         {
@@ -272,9 +274,15 @@ foreach my $chr (sort keys %snifflesvariants)
         }
 
         ## Todo: Do some sanity checks
+        print SVPHASE "$chr:$pos:$genotype\t$type\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\n";
+
+        foreach my $rid (@{$v->{reads}})
+        {
+          print SVPHASE "== $rid\n";
+        }
 
         # Now update the variant phase and splice into the others
-        substr($v->{sample}, 0, 3) = $genotype;
+        substr($v->{sample}, 0, 3) = $newgenotype;
         $vcfdata{$chr}->{$pos} = $v;
         if (exists $v->{seq})
         {
