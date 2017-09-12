@@ -280,12 +280,12 @@ foreach my $chr (sort keys %snifflesvariants)
           if ($v->{alt} eq "<INS>")
           {
             $v->{alt} = "X" . $v->{seq};
-            $v->{ref} = ".";
+            $v->{ref} = "X";
           }
           elsif ($v->{alt} eq "<DEL>")
           {
             $v->{ref} = "X" . $v->{seq};
-            $v->{alt} = ".";
+            $v->{alt} = "X";
           }
         }
 
