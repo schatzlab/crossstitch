@@ -119,6 +119,10 @@ while (<SNIFFLESVCF>)
       {
         $v->{seq} = substr($f, 4);
       }
+      elsif ($f =~ /^SVLEN=/)
+      {
+        $v->{svlen} = substr($f, 6);
+      }
     }
 
     $snifflesvariants{$chrom}->{$pos} = $v;
@@ -248,17 +252,18 @@ foreach my $chr (sort keys %snifflesvariants)
     my $hap = ($hap1 >= $hap2) ? "hapA" : "hapB";
     my $genotype = $v->{genotype};
     my $type = $v->{alt};
+    my $svlen = $v->{svlen};
     
     $hap = "hom" if ($genotype eq "1/1");
 
-    print "Analyzing $chr:$pos:$genotype\t$type\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\n";
+    print "Analyzing $chr:$pos:$genotype\t$type\t$svlen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\n";
 
     if (($v->{alt} eq "<INS>") || ($v->{alt} eq "<DEL>") || ($v->{alt} eq "<INV>"))
     {
       if (($genotype eq "0/1") || ($genotype eq "1/1"))
       {
-        my $newgenotype = $genotype;
         ## fix the genotype call
+        my $newgenotype = $genotype;
         if ($genotype eq "1/1")
         {
           $newgenotype = "1|1";
@@ -274,7 +279,11 @@ foreach my $chr (sort keys %snifflesvariants)
         }
 
         ## Todo: Do some sanity checks
-        print SVPHASE "$chr:$pos:$genotype\t$type\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\n";
+        #
+        my $slen = 0;
+        $slen = length($v->{seq}) if exists $v->{seq};
+
+        print SVPHASE "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\n";
 
         foreach my $rid (@{$v->{reads}})
         {
@@ -296,6 +305,10 @@ foreach my $chr (sort keys %snifflesvariants)
             $v->{ref} = "X" . $v->{seq};
             $v->{alt} = "X";
           }
+        }
+        else
+        {
+          die "Expected there to be a sequence, but none found\n";
         }
 
         $phasedsvs++;
