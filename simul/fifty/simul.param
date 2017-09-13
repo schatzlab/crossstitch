@@ -3,8 +3,8 @@ DUPLICATION_minimum_length: 100
 DUPLICATION_maximum_length: 10000
 DUPLICATION_number: 0
 INDEL_minimum_length: 500
-INDEL_maximum_length: 5000
-INDEL_number: 5
+INDEL_maximum_length: 2000
+INDEL_number: 50
 TRANSLOCATION_minimum_length: 1000
 TRANSLOCATION_maximum_length: 3000
 TRANSLOCATION_number: 0

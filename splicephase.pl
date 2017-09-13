@@ -308,7 +308,7 @@ foreach my $chr (sort keys %snifflesvariants)
         }
         else
         {
-          die "Expected there to be a sequence, but none found\n";
+          print "ERROR: Expected there to be a sequence, but none found\n";
         }
 
         $phasedsvs++;
