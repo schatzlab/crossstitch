@@ -4,6 +4,7 @@
 ## also conda install sbt freebayes
 
 #set -xv
+set -e
 
 SNPDIST=1000
 BASE=base.fa
@@ -162,6 +163,12 @@ then
   ../../splicephase.pl data/pbAll.phased.vcf data/pbAll.sniffles.vcf data/pbAll.hairs data/spliced.vcf
 fi
 
+if [ ! -r data/spliced.vcf.svphase.status ]
+then
+  echo "Checking phasing status"
+  ../compare_svcalls.pl data/svs.summary data/spliced.vcf.svphase > data/spliced.vcf.svphase.status
+  cat data/spliced.vcf.svphase.status
+fi
 
 if [ ! -r data/spliceddiploid/maternal.chain ]
 then
