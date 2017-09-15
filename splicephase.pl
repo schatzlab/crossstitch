@@ -1,6 +1,10 @@
 #!/usr/bin/perl -w
 use strict;
 
+## Parameters for overrulling homozygous variant calls
+my $OVERRULE_HOMOZYGOUS_FACTOR = 5;
+my $OVERRULE_HOMOZYGOUS_MINREADS = 5;
+
 my $USAGE = "splicephase.pl phased.vcf sniffles.vcf loadreads.hairs spliced.vcf\n";
 
 my $PHASEDVCFFILE   = shift or die $USAGE;
@@ -265,24 +269,25 @@ foreach my $chr (sort keys %snifflesvariants)
     {
       if (($genotype eq "0/1") || ($genotype eq "1/1"))
       {
-        ## fix the genotype call
+        ## phase the genotype call
         my $newgenotype = $genotype;
+
         if ($genotype eq "1/1")
         {
           $newgenotype = "1|1";
+
+          if ($numreads >= $OVERRULE_HOMOZYGOUS_MINREADS)
+          {
+            if     ($hap2 >= $hap1 * $OVERRULE_HOMOZYGOUS_FACTOR) { $newgenotype = "0|1"; }
+            elsif  ($hap1 >= $hap2 * $OVERRULE_HOMOZYGOUS_FACTOR) { $newgenotype = "1|0"; }
+          }
         }
         elsif ($genotype eq "0/1")
         {
           if    ($hap eq "hapA") { $newgenotype = "1|0"; }
           elsif ($hap eq "hapB") { $newgenotype = "0|1"; }
         }
-        else
-        {
-          die "Unexpected case: $genotype";
-        }
 
-        ## Todo: Do some sanity checks
-        #
         my $slen = 0;
         $slen = length($v->{seq}) if exists $v->{seq};
 
@@ -293,9 +298,6 @@ foreach my $chr (sort keys %snifflesvariants)
         {
           print SVPHASEDETAILS "== $rid\n";
         }
-
-        # Now update the variant phase and splice into the others
-        substr($v->{sample}, 0, 3) = $newgenotype;
 
         my $includesv = 0;
 
@@ -325,6 +327,8 @@ foreach my $chr (sort keys %snifflesvariants)
 
         if ($includesv)
         {
+          # Now update the variant phase and splice into the others
+          substr($v->{sample}, 0, 3) = $newgenotype;
           $vcfdata{$chr}->{$pos} = $v;
           $phasedsvs++;
         }
