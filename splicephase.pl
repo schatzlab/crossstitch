@@ -293,24 +293,37 @@ foreach my $chr (sort keys %snifflesvariants)
         # Now update the variant phase and splice into the others
         substr($v->{sample}, 0, 3) = $newgenotype;
 
+        my $includesv = 0;
+
         if ($v->{alt} eq "<DEL>")
         {
           ## Create a dummy string of Xs that are the right length for the deletion
           my $delseq = "X" x $svlen;
           $v->{ref} = "X" . $delseq;
           $v->{alt} = "X";
+
+          $includesv = 1;
         }
         elsif ($v->{alt} eq "<INS>")
         {
-          if (!exists $v->{seq}) { print "ERROR: expected insertion sequence but found none!" }
-
-          $v->{alt} = "X" . $v->{seq};
-          $v->{ref} = "X";
+          if (exists $v->{seq}) 
+          {
+            $v->{alt} = "X" . $v->{seq};
+            $v->{ref} = "X";
+            $includesv = 1;
+          }
+          else
+          { 
+            print "ERROR: expected insertion sequence but found none! skipping"; 
+            $includesv = 0;
+          }
         }
 
-        $vcfdata{$chr}->{$pos} = $v;
-
-        $phasedsvs++;
+        if ($includesv)
+        {
+          $vcfdata{$chr}->{$pos} = $v;
+          $phasedsvs++;
+        }
       }
     }
   }
