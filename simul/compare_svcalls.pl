@@ -11,6 +11,8 @@ my @truesv;
 open TRUE, $TRUTH or die "Cant open $TRUTH ($!)\n";
 open SNIFFLES, $SNIFFLES or die "Cant open $SNIFFLES ($!)\n";
 
+my $VERBOSE = 0;
+
 ## Load the true calls
 ###############################################################################
 
@@ -33,7 +35,7 @@ while (<TRUE>)
   $v->{found}  = 0;
   $v->{nearby} = 0;
 
-  print "$chr1\t$start\t$end\t$len\t$type\t$het\n";
+  if ($VERBOSE) { print "$chr1\t$start\t$end\t$len\t$type\t$het\n"; }
   push @truesv, $v;
 }
 
@@ -138,7 +140,9 @@ while (<SNIFFLES>)
   my ($chr, $pos, $ogenotype) = split /:/, $posinfo;
 
   $type = substr($type, 1, length($type)-2);
-  print "=$cnt\t$chr\t$pos\t$svlen\t$type\t$newgenotype\t|\t$hap1reads\t$hap2reads\n";
+
+  my $matched = 0;
+  my $summary = "=$cnt\t$chr\t$pos\t$svlen\t$type\t$newgenotype\t|\t$hap1reads\t$hap2reads\n";
 
   foreach my $t (@truesv)
   {
@@ -160,12 +164,17 @@ while (<SNIFFLES>)
       {
         $status = ":-)";
         $t->{found}++;
+        $matched++;
       }
 
-      print " \t$tchr\t$tstart\t$tlen\t$ttype\t$thet\t$status\n";
+      $summary .= " \t$tchr\t$tstart\t$tlen\t$ttype\t$thet\t$status\n";
     }
   }
-  print "\n";
+
+  if (($VERBOSE) || ($matched != 1))
+  {
+    print $summary;
+  }
 }
 
 
