@@ -8,12 +8,13 @@ my $SNIFFLESVCFFILE = shift or die $USAGE;
 my $READHAIRSFILE   = shift or die $USAGE;
 my $OUTVCFFILE      = shift or die $USAGE;
 
-open PHASEDVCF,   $PHASEDVCFFILE   or die "Cant open $PHASEDVCFFILE ($!)\n";
-open SNIFFLESVCF, $SNIFFLESVCFFILE or die "Cant open $SNIFFLESVCFFILE ($!)\n";
-open READHAIRS,   $READHAIRSFILE   or die "Cant open $READHAIRSFILE ($!)\n";
-open OUTVCF,      "> $OUTVCFFILE"  or die "Cant open $OUTVCFFILE ($!)\n";
-open READPHASE,   "> $OUTVCFFILE.readphase" or die "Cant open $OUTVCFFILE.readphase ($!)\n";
-open SVPHASE,     "> $OUTVCFFILE.svphase"   or die "Cant open $OUTVCFFILE.svphase ($!)\n";
+open PHASEDVCF,      $PHASEDVCFFILE   or die "Cant open $PHASEDVCFFILE ($!)\n";
+open SNIFFLESVCF,    $SNIFFLESVCFFILE or die "Cant open $SNIFFLESVCFFILE ($!)\n";
+open READHAIRS,      $READHAIRSFILE   or die "Cant open $READHAIRSFILE ($!)\n";
+open OUTVCF,         "> $OUTVCFFILE"  or die "Cant open $OUTVCFFILE ($!)\n";
+open READPHASE,      "> $OUTVCFFILE.readphase" or die "Cant open $OUTVCFFILE.readphase ($!)\n";
+open SVPHASE,        "> $OUTVCFFILE.svphase"   or die "Cant open $OUTVCFFILE.svphase ($!)\n";
+open SVPHASEDETAILS, "> $OUTVCFFILE.svphase.details" or die "Cant open $OUTVCFFILE.svphase.details ($!)\n";
 
 
 ## Load the phased VCF file
@@ -225,7 +226,9 @@ foreach my $rid (sort {substr($a, 6)  <=> substr($b, 6)} keys %readstophase)
 ## Process Sniffles SVs
 ###############################################################################
 
-print SVPHASE "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\thap2\t| hap hap1r\n";
+print SVPHASE "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\thap2\t| hap hap1r\t|\tnewgenotype\n";
+print SVPHASEDETAILS "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\thap2\t| hap hap1r\t|\tnewgenotype\n";
+
 my $phasedsvs = 0;
 my $allsniffles = 0;
 
@@ -284,10 +287,11 @@ foreach my $chr (sort keys %snifflesvariants)
         $slen = length($v->{seq}) if exists $v->{seq};
 
         print SVPHASE "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\n";
+        print SVPHASEDETAILS "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\n";
 
         foreach my $rid (@{$v->{reads}})
         {
-          print SVPHASE "== $rid\n";
+          print SVPHASEDETAILS "== $rid\n";
         }
 
         # Now update the variant phase and splice into the others
