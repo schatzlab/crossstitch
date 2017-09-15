@@ -225,7 +225,7 @@ foreach my $rid (sort {substr($a, 6)  <=> substr($b, 6)} keys %readstophase)
 ## Process Sniffles SVs
 ###############################################################################
 
-print SVPHASE "chr:pos:genotype\ttype\t|\tnumreads\thap1\thap2\t| hap hap1r\n";
+print SVPHASE "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\thap2\t| hap hap1r\n";
 my $phasedsvs = 0;
 my $allsniffles = 0;
 
@@ -292,24 +292,23 @@ foreach my $chr (sort keys %snifflesvariants)
 
         # Now update the variant phase and splice into the others
         substr($v->{sample}, 0, 3) = $newgenotype;
+
+        if ($v->{alt} eq "<DEL>")
+        {
+          ## Create a dummy string of Xs that are the right length for the deletion
+          my $delseq = "X" x $svlen;
+          $v->{ref} = "X" . $delseq;
+          $v->{alt} = "X";
+        }
+        elsif ($v->{alt} eq "<INS>")
+        {
+          if (!exists $v->{seq}) { print "ERROR: expected insertion sequence but found none!" }
+
+          $v->{alt} = "X" . $v->{seq};
+          $v->{ref} = "X";
+        }
+
         $vcfdata{$chr}->{$pos} = $v;
-        if (exists $v->{seq})
-        {
-          if ($v->{alt} eq "<INS>")
-          {
-            $v->{alt} = "X" . $v->{seq};
-            $v->{ref} = "X";
-          }
-          elsif ($v->{alt} eq "<DEL>")
-          {
-            $v->{ref} = "X" . $v->{seq};
-            $v->{alt} = "X";
-          }
-        }
-        else
-        {
-          print "ERROR: Expected there to be a sequence, but none found\n";
-        }
 
         $phasedsvs++;
       }
