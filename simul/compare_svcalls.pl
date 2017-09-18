@@ -1,17 +1,19 @@
 #!/usr/bin/perl -w
 use strict;
 
-my $USAGE = "comparesvcalls.pl sv.summary spliced.vcf.svphase\n";
+my $WIGGLE = 100;
+
+my $USAGE = "comparesvcalls.pl sv.summary spliced.vcf.svphase [VERBOSE]\n";
 
 my $TRUTH = shift @ARGV or die $USAGE;
 my $SNIFFLES = shift @ARGV or die $USAGE;
+my $VERBOSE = shift @ARGV;
 
 my @truesv;
 
 open TRUE, $TRUTH or die "Cant open $TRUTH ($!)\n";
 open SNIFFLES, $SNIFFLES or die "Cant open $SNIFFLES ($!)\n";
 
-my $VERBOSE = 0;
 
 ## Load the true calls
 ###############################################################################
@@ -76,7 +78,7 @@ while (<SNIFFLES>)
     next if ($chr ne $t->{chr});
     my $distance = abs($pos - $t->{start});
 
-    if (($distance < 1000) && ($type eq $t->{type}))
+    if (($distance < $WIGGLE) && ($type eq $t->{type}))
     {
       my $tchr   = $t->{chr};
       my $tstart = $t->{start};
@@ -149,7 +151,7 @@ while (<SNIFFLES>)
     next if ($chr ne $t->{chr});
     my $distance = abs($pos - $t->{start});
 
-    if (($distance < 1000) && ($type eq $t->{type}))
+    if (($distance < $WIGGLE) && ($type eq $t->{type}))
     {
       my $tchr   = $t->{chr};
       my $tstart = $t->{start};
