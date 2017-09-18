@@ -11,7 +11,8 @@ BASE=base.fa
 PARAM=simul.param
 BASE=base.fa
 THREADS=10
-MIN_SNIFFLES_READS=5
+SNIFFLES_MIN_READS=5
+SNIFFLES_MIN_HET_AF=0.25
 
 if [ ! -r $PARAM ]
 then
@@ -73,7 +74,7 @@ if [ ! -r data/pbAll.sniffles.vcf ]
 then
   echo "Calling variants with Sniffles"
   READSTOPHASE=1000
-  /work-zfs/mschatz1/mschatz/build/Sniffles/bin/sniffles-core-1.0.6/sniffles -s $MIN_SNIFFLES_READS -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype --report_seq -n $READSTOPHASE
+  /work-zfs/mschatz1/mschatz/build/Sniffles/bin/sniffles-core-1.0.6/sniffles -s $SNIFFLES_MIN_READS --min_het_af $SNIFFLES_MIN_HET_AF  -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype --report_seq -n $READSTOPHASE
 fi
 
 
