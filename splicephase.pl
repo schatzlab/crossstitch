@@ -267,7 +267,7 @@ foreach my $chr (sort keys %snifflesvariants)
 
     if (($v->{alt} eq "<INS>") || ($v->{alt} eq "<DEL>") || ($v->{alt} eq "<INV>"))
     {
-      if (($genotype eq "0/1") || ($genotype eq "1/1"))
+      if (($genotype eq "0/0") || ($genotype eq "0/1") || ($genotype eq "1/1"))
       {
         ## phase the genotype call
         my $newgenotype = $genotype;
@@ -282,7 +282,7 @@ foreach my $chr (sort keys %snifflesvariants)
             elsif  ($hap1 >= $hap2 * $OVERRULE_HOMOZYGOUS_FACTOR) { $newgenotype = "1|0"; }
           }
         }
-        elsif ($genotype eq "0/1")
+        elsif (($genotype eq "0/1") || ($genotype eq "0/0"))
         {
           if    ($hap eq "hapA") { $newgenotype = "1|0"; }
           elsif ($hap eq "hapB") { $newgenotype = "0|1"; }
