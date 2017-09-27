@@ -5,12 +5,13 @@ use strict;
 my $OVERRULE_HOMOZYGOUS_FACTOR = 5;
 my $OVERRULE_HOMOZYGOUS_MINREADS = 5;
 
-my $USAGE = "splicephase.pl phased.vcf sniffles.vcf loadreads.hairs spliced.vcf\n";
+my $USAGE = "splicephase.pl phased.vcf sniffles.vcf loadreads.hairs spliced.vcf ref.fa\n";
 
 my $PHASEDVCFFILE   = shift or die $USAGE;
 my $SNIFFLESVCFFILE = shift or die $USAGE;
 my $READHAIRSFILE   = shift or die $USAGE;
 my $OUTVCFFILE      = shift or die $USAGE;
+my $REFFASTA        = shift or die $USAGE;
 
 open PHASEDVCF,      $PHASEDVCFFILE   or die "Cant open $PHASEDVCFFILE ($!)\n";
 open SNIFFLESVCF,    $SNIFFLESVCFFILE or die "Cant open $SNIFFLESVCFFILE ($!)\n";
@@ -19,6 +20,45 @@ open OUTVCF,         "> $OUTVCFFILE"  or die "Cant open $OUTVCFFILE ($!)\n";
 open READPHASE,      "> $OUTVCFFILE.readphase" or die "Cant open $OUTVCFFILE.readphase ($!)\n";
 open SVPHASE,        "> $OUTVCFFILE.svphase"   or die "Cant open $OUTVCFFILE.svphase ($!)\n";
 open SVPHASEDETAILS, "> $OUTVCFFILE.svphase.details" or die "Cant open $OUTVCFFILE.svphase.details ($!)\n";
+
+
+sub rc
+{
+  my $seq = shift @_;
+  $seq = reverse ($seq);
+  $seq =~ tr/ACGTacgt/TGCAtgca/;
+  return $seq;
+}
+
+
+sub getseq
+{
+  my $chr = shift @_;
+  my $pos = shift @_;
+  my $svlen = shift @_;
+
+  my $end = $pos + $svlen;
+
+  print "Running samtools faidx $REFFASTA \"$chr:$pos-$end\"\n";
+  system("samtools faidx $REFFASTA \"$chr:$pos-$end\" > splicephase.tmp");
+
+  open RAW, "splicephase.tmp" or die "Cant open ($!)\n";
+
+  my $seq = "";
+
+  while (<RAW>)
+  {
+    next if (/^>/);
+    chomp;
+    $seq .= $_;
+  }
+
+  print ">$chr:$pos-$end\n";
+  print "$seq\n";
+
+  return $seq;
+}
+
 
 
 ## Load the phased VCF file
@@ -325,6 +365,9 @@ foreach my $chr (sort keys %snifflesvariants)
         {
           ## Add the SV, vcf2diploid can parse the length
           $includesv = 1;
+
+          $v->{ref} = "X" x $svlen;
+          $v->{alt} = rc(getseq($chr, $pos, $svlen));
         }
 
         print SVPHASE "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\n";
