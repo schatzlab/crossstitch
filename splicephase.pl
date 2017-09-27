@@ -291,9 +291,6 @@ foreach my $chr (sort keys %snifflesvariants)
         my $slen = 0;
         $slen = length($v->{seq}) if exists $v->{seq};
 
-        print SVPHASE "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\n";
-        print SVPHASEDETAILS "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\n";
-
         foreach my $rid (@{$v->{reads}})
         {
           print SVPHASEDETAILS "== $rid\n";
@@ -324,6 +321,14 @@ foreach my $chr (sort keys %snifflesvariants)
             $includesv = 0;
           }
         }
+        elsif ($v->{alt} eq "<INV>")
+        {
+          ## Add the SV, vcf2diploid can parse the length
+          $includesv = 1;
+        }
+
+        print SVPHASE "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\n";
+        print SVPHASEDETAILS "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\n";
 
         if ($includesv)
         {
