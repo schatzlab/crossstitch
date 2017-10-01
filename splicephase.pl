@@ -53,8 +53,8 @@ sub getseq
     $seq .= $_;
   }
 
-  print ">$chr:$pos-$end\n";
-  print "$seq\n";
+  # print ">$chr:$pos-$end\n";
+  # print "$seq\n";
 
   return $seq;
 }
@@ -352,9 +352,20 @@ foreach my $chr (sort keys %snifflesvariants)
         {
           if (exists $v->{seq}) 
           {
-            $v->{alt} = "X" . $v->{seq};
-            $v->{ref} = "X";
-            $includesv = 1;
+            my $seqlen = length ($v->{seq});
+            my $svlen = $v->{svlen};
+
+            if (($seqlen < .9 * $svlen) || ($seqlen > 1.2 * $svlen))
+            {
+              print "ERROR: reported insertion sequencing length ($seqlen) significantly differs from reported SV size ($svlen)\n";
+              $includesv = 0;
+            }
+            else
+            {
+              $v->{alt} = "X" . $v->{seq};
+              $v->{ref} = "X";
+              $includesv = 1;
+            }
           }
           else
           { 
