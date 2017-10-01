@@ -270,8 +270,8 @@ foreach my $rid (sort {substr($a, 6)  <=> substr($b, 6)} keys %readstophase)
 ## Process Sniffles SVs
 ###############################################################################
 
-print SVPHASE "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\thap2\t| hap hap1r\t|\tnewgenotype\n";
-print SVPHASEDETAILS "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\thap2\t| hap hap1r\t|\tnewgenotype\n";
+print SVPHASE "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\thap2\t| hap hap1r\t|\tnewgenotype\tincludesv\toverrulehomo\n";
+print SVPHASEDETAILS "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\thap2\t| hap hap1r\t|\tnewgenotype\tincludesv\toverrulehomo\n";
 
 my $phasedsvs = 0;
 my $allsniffles = 0;
@@ -311,6 +311,7 @@ foreach my $chr (sort keys %snifflesvariants)
       {
         ## phase the genotype call
         my $newgenotype = $genotype;
+        my $overrulehomo = 0;
 
         if ($genotype eq "1/1")
         {
@@ -318,8 +319,8 @@ foreach my $chr (sort keys %snifflesvariants)
 
           if ($numreads >= $OVERRULE_HOMOZYGOUS_MINREADS)
           {
-            if     ($hap2 >= $hap1 * $OVERRULE_HOMOZYGOUS_FACTOR) { $newgenotype = "0|1"; }
-            elsif  ($hap1 >= $hap2 * $OVERRULE_HOMOZYGOUS_FACTOR) { $newgenotype = "1|0"; }
+            if     ($hap2 >= $hap1 * $OVERRULE_HOMOZYGOUS_FACTOR) { $newgenotype = "0|1"; $overrulehomo = 1; }
+            elsif  ($hap1 >= $hap2 * $OVERRULE_HOMOZYGOUS_FACTOR) { $newgenotype = "1|0"; $overrulehomo = 1; }
           }
         }
         elsif (($genotype eq "0/1") || ($genotype eq "0/0"))
@@ -370,8 +371,8 @@ foreach my $chr (sort keys %snifflesvariants)
           $v->{alt} = rc(getseq($chr, $pos, $svlen));
         }
 
-        print SVPHASE "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\n";
-        print SVPHASEDETAILS "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\n";
+        print SVPHASE "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\t$overrulehomo\n";
+        print SVPHASEDETAILS "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\t$overrulehomo\n";
 
         if ($includesv)
         {
