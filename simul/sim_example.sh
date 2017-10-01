@@ -85,7 +85,7 @@ fi
 if [ ! -r data/illA.1.fq ]
 then
   samtools faidx data/mutA.fasta
-  numpairs=`awk '{print $2*50/200}' data/mutA.fasta.fai`
+  numpairs=`awk '{print int($2*50/200)}' data/mutA.fasta.fai`
   echo "simulating $numpairs pairs for hapA"
   mason_simulator -ir data/mutA.fasta -n $numpairs -o data/illA.1.fq -or data/illA.2.fq --num-threads $THREADS
 fi
@@ -93,7 +93,7 @@ fi
 if [ ! -r data/illB.1.fq ]
 then
   samtools faidx data/mutB.fasta
-  numpairs=`awk '{print $2*50/200}' data/mutB.fasta.fai`
+  numpairs=`awk '{print int($2*50/200)}' data/mutB.fasta.fai`
   echo "simulating $numpairs pairs for hapB"
   mason_simulator -ir data/mutB.fasta -n $numpairs -o data/illB.1.fq -or data/illB.2.fq --num-threads $THREADS
 fi
@@ -124,7 +124,94 @@ then
 fi
 
 
-## Phase PacBio reads using Illumina SNPs
+
+## Simulate long mates for phasing
+###############################################################################
+
+MATE_MEA=20000
+MATE_STD=2000
+MATE_MIN=10000
+MATE_MAX=30000
+
+if [ ! -r data/matesA.1.fq ]
+then
+
+  if [ ! -r data/mutA.fasta.fai ]
+  then
+    samtools faidx data/mutA.fasta
+  fi
+
+  numpairs=`awk '{print int($2*40/200)}' data/mutA.fasta.fai`
+  echo "simulating $numpairs pairs for hapA"
+  mason_simulator --fragment-min-size $MATE_MIN \
+                  --fragment-max-size $MATE_MAX \
+                  --fragment-mean-size $MATE_MEA \
+                  --fragment-size-std-dev $MATE_STD \
+                  --seq-mate-orientation FR \
+                  -ir data/mutA.fasta -n $numpairs -o data/matesA.1.fq -or data/matesA.2.fq --num-threads $THREADS
+fi
+
+if [ ! -r data/matesB.1.fq ]
+then
+
+  if [ ! -r data/mutA.fasta.fai ]
+  then
+    samtools faidx data/mutB.fasta
+  fi
+
+  numpairs=`awk '{print int($2*40/200)}' data/mutB.fasta.fai`
+  echo "simulating $numpairs pairs for hapB"
+  mason_simulator --fragment-min-size $MATE_MIN \
+                  --fragment-max-size $MATE_MAX \
+                  --fragment-mean-size $MATE_MEA \
+                  --fragment-size-std-dev $MATE_STD \
+                  --seq-mate-orientation FR \
+                  -ir data/mutB.fasta -n $numpairs -o data/matesB.1.fq -or data/matesB.2.fq --num-threads $THREADS
+fi
+
+if [ ! -r data/matesAll.1.fq ]
+then
+  echo "Reformat matesumina reads"
+  cat data/matesA.1.fq data/matesB.1.fq | paste - - - - | awk '{c++; print "@mates"c"/1"; print $2; print "+"; print $4}' > data/matesAll.1.fq
+  cat data/matesA.2.fq data/matesB.2.fq | paste - - - - | awk '{c++; print "@mates"c"/2"; print $2; print "+"; print $4}' > data/matesAll.2.fq
+fi
+
+
+if [ ! -r data/matesAll.bam ]
+then
+  echo "Align matesumina reads and sort"
+  bwa mem -I $MATE_MEA base.fa data/matesAll.1.fq data/matesAll.2.fq -t $THREADS > data/matesAll.sam
+  samtools view -b data/matesAll.sam -o data/matesAll.unsorted.bam
+  samtools sort data/matesAll.unsorted.bam -o data/matesAll.bam
+  samtools index data/matesAll.bam
+  rm -f data/matesAll.unsorted.bam
+fi
+
+## Phase mates over Illumina SNPs
+###############################################################################
+
+if [ ! -r data/matesAll.hairs ]
+then
+  echo "extracting mates-hairs from snps"
+  extractHAIRS --maxIS $MATE_MAX --minIS $MATE_MIN --bam data/matesAll.bam --VCF data/illAll.vcf --out data/matesAll.hairs
+fi
+
+if [ ! -r data/matesAll.hapcut ]
+then
+  echo "phase pacbio reads"
+  HAPCUT2 --fragments data/matesAll.hairs --vcf data/illAll.vcf --output data/matesAll.hapcut
+fi
+
+
+if [ ! -r data/matesAll.phased.vcf ]
+then
+  echo "Making a new phased vcf file from mates phasing + illumina snps"
+  java -jar ~/build/fgbio/target/scala-2.12/fgbio-0.2.1-SNAPSHOT.jar HapCutToVcf -i data/matesAll.hapcut -v data/illAll.vcf -o data/matesAll.phased.vcf
+fi
+
+
+
+## Lookup the alleles of the PB reads and phase the SVs
 ###############################################################################
 
 if [ ! -r data/pbAll.hairs ]
@@ -133,36 +220,23 @@ then
   extractHAIRS --bam data/pbAll.bam --VCF data/illAll.vcf --out data/pbAll.hairs
 fi
 
-if [ ! -r data/pbAll.hapcut ]
-then
-  echo "phase pacbio reads"
-  HAPCUT2 --fragments data/pbAll.hairs --vcf data/illAll.vcf --output data/pbAll.hapcut
-fi
-
-
-if [ ! -r data/pbAll.phased.vcf ]
-then
-  echo "Making a new phased vcf file from pacbio reads"
-  java -jar ~/build/fgbio/target/scala-2.12/fgbio-0.2.1-SNAPSHOT.jar HapCutToVcf -i data/pbAll.hapcut -v data/illAll.vcf -o data/pbAll.phased.vcf
-fi
-
-if [ ! -r data/pbsnps/maternal.chain ]
-then
-  mkdir -p data/pbsnps
-  cd data/pbsnps
-  ln -s ../pbAll.phased.vcf
-  ln -s ../../base.fa
-
-  echo "constructing diploid sequence with SNPs"
-  java -jar /work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar -id unknown -chr base.fa -vcf pbAll.phased.vcf
-  cd ../..
-fi
+# if [ ! -r data/pbAll.hapcut ]
+# then
+#   echo "phase pacbio reads"
+#   HAPCUT2 --fragments data/pbAll.hairs --vcf data/illAll.vcf --output data/pbAll.hapcut
+# fi
+# 
+# if [ ! -r data/pbAll.phased.vcf ]
+# then
+#   echo "Making a new phased vcf file from pacbio reads"
+#   java -jar ~/build/fgbio/target/scala-2.12/fgbio-0.2.1-SNAPSHOT.jar HapCutToVcf -i data/pbAll.hapcut -v data/illAll.vcf -o data/pbAll.phased.vcf
+# fi
 
 
 if [ ! -r data/spliced.vcf ]
 then
   echo "Splicing in phased SVs"
-  ../../splicephase.pl data/pbAll.phased.vcf data/pbAll.sniffles.vcf data/pbAll.hairs data/spliced.vcf base.fa
+  ../../splicephase.pl data/matesAll.phased.vcf data/pbAll.sniffles.vcf data/pbAll.hairs data/spliced.vcf base.fa
 fi
 
 if [ ! -r data/spliced.vcf.svphase.status ]
