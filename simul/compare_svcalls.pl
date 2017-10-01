@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 
-my $WIGGLE = 100;
+my $WIGGLE = 50;
 
 my $USAGE = "comparesvcalls.pl sv.summary spliced.vcf.svphase [VERBOSE]\n";
 
