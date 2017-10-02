@@ -39,7 +39,7 @@ sub getseq
 
   my $end = $pos + $svlen;
 
-  print "Running samtools faidx $REFFASTA \"$chr:$pos-$end\"\n";
+  # print "Running samtools faidx $REFFASTA \"$chr:$pos-$end\"\n";
   system("samtools faidx $REFFASTA \"$chr:$pos-$end\" > splicephase.tmp");
 
   open RAW, "splicephase.tmp" or die "Cant open ($!)\n";
