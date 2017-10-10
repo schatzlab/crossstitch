@@ -5,6 +5,10 @@ use strict;
 my $OVERRULE_HOMOZYGOUS_FACTOR = 5;
 my $OVERRULE_HOMOZYGOUS_MINREADS = 5;
 
+my $PHASESVS = 1;
+my $SVTOOLONG = 1.2;
+my $SVTOOSHORT = 0.8;
+
 my $USAGE = "splicephase.pl phased.vcf sniffles.vcf loadreads.hairs spliced.vcf ref.fa\n";
 
 my $PHASEDVCFFILE   = shift or die $USAGE;
@@ -138,7 +142,8 @@ while (<SNIFFLESVCF>)
     $v->{sample} = $sample;
     $v->{reads}  = [];
 
-    $snifflesvarianttypes{$alt}++;
+    $snifflesvarianttypes{$alt}->{all}++;
+    $snifflesvarianttypes{$alt}->{phased} = 0;
 
     my ($genotype, $other) = split /:/, $sample;
     $v->{genotype} = $genotype;
@@ -179,8 +184,8 @@ my $readcount = scalar keys %readstophase;
 print "Loaded $sniffleslines sniffles variants involving $readcount reads:";
 foreach my $t (sort keys %snifflesvarianttypes)
 {
-  my $n = $snifflesvarianttypes{$t};
-  print " $n $t";
+  my $n = $snifflesvarianttypes{$t}->{all};
+  print " $t $n";
 }
 print "\n";
 
@@ -275,6 +280,7 @@ print SVPHASEDETAILS "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\t
 
 my $phasedsvs = 0;
 my $allsniffles = 0;
+my $svlenerr = 0;
 
 foreach my $chr (sort keys %snifflesvariants)
 {
@@ -300,6 +306,7 @@ foreach my $chr (sort keys %snifflesvariants)
     my $genotype = $v->{genotype};
     my $type = $v->{alt};
     my $svlen = $v->{svlen};
+
     
     $hap = "hom" if ($genotype eq "1/1");
 
@@ -355,10 +362,11 @@ foreach my $chr (sort keys %snifflesvariants)
             my $seqlen = length ($v->{seq});
             my $svlen = $v->{svlen};
 
-            if (($seqlen < .9 * $svlen) || ($seqlen > 1.2 * $svlen))
+            if (($seqlen < ($SVTOOSHORT * $svlen)) || ($seqlen > ($SVTOOLONG * $svlen)))
             {
               print "ERROR: reported insertion sequencing length ($seqlen) significantly differs from reported SV size ($svlen)\n";
               $includesv = 0;
+              $svlenerr++;
             }
             else
             {
@@ -369,7 +377,7 @@ foreach my $chr (sort keys %snifflesvariants)
           }
           else
           { 
-            print "ERROR: expected insertion sequence but found none! skipping"; 
+            print "ERROR: expected insertion sequence but found none! skipping\n"; 
             $includesv = 0;
           }
         }
@@ -385,19 +393,29 @@ foreach my $chr (sort keys %snifflesvariants)
         print SVPHASE "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\t$overrulehomo\n";
         print SVPHASEDETAILS "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\t$overrulehomo\n";
 
-        if ($includesv)
+        if ($includesv && $PHASESVS)
         {
           # Now update the variant phase and splice into the others
           substr($v->{sample}, 0, 3) = $newgenotype;
           $vcfdata{$chr}->{$pos} = $v;
           $phasedsvs++;
+          $snifflesvarianttypes{$type}->{phased}++;
         }
       }
     }
   }
 }
 
-print "Finished phasing $phasedsvs svs of $allsniffles\n";
+print "Finished phasing $phasedsvs svs of $allsniffles attempted ($sniffleslines all). svlenerr: $svlenerr\n";
+print "type all phased:";
+
+foreach my $t (sort keys %snifflesvarianttypes)
+{
+  my $n = $snifflesvarianttypes{$t}->{all};
+  my $p = $snifflesvarianttypes{$t}->{phased};
+  print " $t $n $p";
+}
+print "\n";
 
 
 ## Print output
