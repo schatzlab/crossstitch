@@ -4,13 +4,13 @@ DUPLICATION_maximum_length: 10000
 DUPLICATION_number: 0
 INDEL_minimum_length: 500
 INDEL_maximum_length: 2000
-INDEL_number: 50
+INDEL_number: 20
 TRANSLOCATION_minimum_length: 1000
 TRANSLOCATION_maximum_length: 3000
 TRANSLOCATION_number: 0
 INVERSION_minimum_length: 600
 INVERSION_maximum_length: 800
-INVERSION_number: 0
+INVERSION_number: 10
 INV_del_minimum_length: 600
 INV_del_maximum_length: 800
 INV_del_number: 0
