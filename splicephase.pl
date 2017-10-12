@@ -281,6 +281,7 @@ print SVPHASEDETAILS "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\t
 my $phasedsvs = 0;
 my $allsniffles = 0;
 my $svlenerr = 0;
+my $genotypeerr = 0;
 
 foreach my $chr (sort keys %snifflesvariants)
 {
@@ -307,7 +308,6 @@ foreach my $chr (sort keys %snifflesvariants)
     my $type = $v->{alt};
     my $svlen = $v->{svlen};
 
-    
     $hap = "hom" if ($genotype eq "1/1");
 
     print "Analyzing $chr:$pos:$genotype\t$type\t$svlen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\n";
@@ -383,11 +383,9 @@ foreach my $chr (sort keys %snifflesvariants)
         }
         elsif ($v->{alt} eq "<INV>")
         {
-          ## Add the SV, vcf2diploid can parse the length
-          $includesv = 1;
-
           $v->{ref} = "X" x $svlen;
           $v->{alt} = rc(getseq($chr, $pos, $svlen));
+          $includesv = 1;
         }
 
         print SVPHASE "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\t$overrulehomo\n";
@@ -402,11 +400,16 @@ foreach my $chr (sort keys %snifflesvariants)
           $snifflesvarianttypes{$type}->{phased}++;
         }
       }
+      else
+      {
+        print "ERROR: Weird genotype call: $type $genotype\n";
+        $genotypeerr++;
+      }
     }
   }
 }
 
-print "Finished phasing $phasedsvs svs of $allsniffles attempted ($sniffleslines all). svlenerr: $svlenerr\n";
+print "Finished phasing $phasedsvs svs of $allsniffles attempted ($sniffleslines all). svlenerr: $svlenerr genotyperr: $genotypeerr\n";
 print "type all phased:";
 
 foreach my $t (sort keys %snifflesvarianttypes)
