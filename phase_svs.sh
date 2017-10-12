@@ -3,7 +3,7 @@
 #set -xv
 set -e
 
-if [ $# -ne 4 ]
+if [ $# -ne 5 ]
 then
   echo "USAGE: phase_svs.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix"
   exit
@@ -16,20 +16,27 @@ LONGREADSBAM=$3
 GENOME=$4
 OUTPREFIX=$5
 
-echo "phase_svs.sh BINDIR:$BINDIR PHASEDSNPS:$PHASEDSNPS STRUCTURALVARIANTS:$STRUCTURALVARIANTS LONGREADSBAM:$LONGREADSBAM GENOME:$GENOME OUT:$OUTPREFIX"
+echo "phase_svs.sh"
+echo "  BINDIR: $BINDIR"
+echo "  PHASEDSNPS: $PHASEDSNPS"
+echo "  STRUCTURALVARIANTS: $STRUCTURALVARIANTS"
+echo "  LONGREADSBAM: $LONGREADSBAM"
+echo "  GENOME: $GENOME"
+echo "  OUT: $OUTPREFIX"
+echo
+echo
 
-exit
 
 if [ ! -r $OUTPREFIX.hairs ]
 then
   echo "extracting pacbio-hairs from snps"
-  extractHAIRS --bam $LONGREADBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
+  extractHAIRS --bam $LONGREADSBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
 fi
 
 if [ ! -r $OUTPREFIX.spliced.vcf ]
 then
   echo "Splicing in phased SVs"
-  $BINDIR/splicephase.pl $PHASEDSNPS $STRUCTURALVARIANTS $OUTPREFIX.hairs $OUTPREFIX.spliced.vcf $GENOME >& $OUTDIR.spliced.log
+  $BINDIR/splicephase.pl $PHASEDSNPS $STRUCTURALVARIANTS $OUTPREFIX.hairs $OUTPREFIX.spliced.vcf $GENOME >& $OUTPREFIX.spliced.log
 fi
 
 exit
