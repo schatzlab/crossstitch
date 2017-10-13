@@ -261,7 +261,7 @@ print "Loaded $hairslines hairs records, found $foundhairs of $readcount involve
 ###############################################################################
 
 print READPHASE "#READID\tNUMSV\t|\tHAP1\tHAP2\t| HAP HAPR | SNPS\n";
-foreach my $rid (sort {substr($a, 6)  <=> substr($b, 6)} keys %readstophase)
+foreach my $rid (sort {lc($a) cmp lc($b)} keys %readstophase)
 {
   my $numsv = $readstophase{$rid}->{num};
   my $hap1  = $readstophase{$rid}->{hap1};
