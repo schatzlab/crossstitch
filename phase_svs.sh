@@ -15,6 +15,7 @@ STRUCTURALVARIANTS=$2
 LONGREADSBAM=$3
 GENOME=$4
 OUTPREFIX=$5
+VCF2DIPLOIDJAR=/work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar
 
 echo "phase_svs.sh"
 echo "  BINDIR: $BINDIR"
@@ -26,17 +27,19 @@ echo "  OUT: $OUTPREFIX"
 echo
 echo
 
+GENOME=`readlink -f $GENOME`
+
 
 if [ ! -r $OUTPREFIX.hairs ]
 then
   echo "extracting pacbio-hairs from phased snps"
-  #extractHAIRS --bam $LONGREADSBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
+  extractHAIRS --bam $LONGREADSBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
 fi
 
 if [ ! -r $OUTPREFIX.scrubbed.vcf ]
 then
   echo "Scrubbing SV calls"
-  $BINDIR/scrubsvs.pl $STRUCTURALVARIANTS > $OUTPREFIX.scrubbed.vcf >& $OUTPREFIX.scrubbed.log
+  ($BINDIR/scrubvcf.pl $STRUCTURALVARIANTS > $OUTPREFIX.scrubbed.vcf) >& $OUTPREFIX.scrubbed.log
 fi
 
 if [ ! -r $OUTPREFIX.spliced.vcf ]
@@ -45,53 +48,23 @@ then
   $BINDIR/splicephase.pl $PHASEDSNPS $OUTPREFIX.scrubbed.vcf $OUTPREFIX.hairs $OUTPREFIX.spliced.vcf $GENOME >& $OUTPREFIX.spliced.log
 fi
 
-exit
-
-
-if [ ! -r data/spliceddiploid/maternal.chain ]
+if [ ! -r $OUTPREFIX.alleleseq ]
 then
-  mkdir -p data/spliceddiploid
-  cd data/spliceddiploid
-  ln -s ../spliced.vcf
-  ln -s ../../base.fa
+  mkdir -p $OUTPREFIX.alleleseq
+  cd $OUTPREFIX.alleleseq
+
+  ln -s ../$OUTPREFIX.spliced.vcf
+
+  VCFID=`head -5000 $OUTPREFIX.spliced.vcf | grep '#CHROM' | awk '{print $10}'`
 
   echo "constructing diploid sequence with SNPs and SVs"
-  java -jar /work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar -id unknown -chr base.fa -vcf spliced.vcf
-  cd ../..
+  java -Xmx400000m -jar $VCF2DIPLOIDJAR -id $VCFID -pass -chr $GENOME -vcf $OUTPREFIX.spliced.vcf >& vcf2diploid.log
+  cd ..
 fi
 
-if [ ! -r data/spliceddiploid/Am.delta ]
+if [ ! -r $OUTPREFIX.alleleseq.raw.tgz ]
 then
-  echo "aligning diploid to truth"
-  nucmer -maxmatch -D 10 data/mutA.fasta data/spliceddiploid/chr1_unknown_maternal.fa -p data/spliceddiploid/Am >& /dev/null
-  nucmer -maxmatch -D 10 data/mutB.fasta data/spliceddiploid/chr1_unknown_maternal.fa -p data/spliceddiploid/Bm >& /dev/null
-  nucmer -maxmatch -D 10 data/mutA.fasta data/spliceddiploid/chr1_unknown_paternal.fa -p data/spliceddiploid/Ap >& /dev/null
-  nucmer -maxmatch -D 10 data/mutB.fasta data/spliceddiploid/chr1_unknown_paternal.fa -p data/spliceddiploid/Bp >& /dev/null
-fi
-
-if [ ! -r data/spliceddiploid/Am.1delta ]
-then
-  echo "filtering alignments"
-  delta-filter -1 data/spliceddiploid/Am.delta > data/spliceddiploid/Am.1delta
-  delta-filter -1 data/spliceddiploid/Bm.delta > data/spliceddiploid/Bm.1delta
-  delta-filter -1 data/spliceddiploid/Ap.delta > data/spliceddiploid/Ap.1delta
-  delta-filter -1 data/spliceddiploid/Bp.delta > data/spliceddiploid/Bp.1delta
-fi
-
-
-
-SHOWCOORDS=0
-
-if [  $# -gt 0 ]
-then 
-  SHOWCOORDS=$1
-fi
-
-if [ $SHOWCOORDS == "1" ]
-then
-  echo "Am"; show-coords -rcl data/spliceddiploid/Am.1delta
-  echo "Bm"; show-coords -rcl data/spliceddiploid/Bm.1delta
-  echo "Ap"; show-coords -rcl data/spliceddiploid/Ap.1delta
-  echo "Bp"; show-coords -rcl data/spliceddiploid/Bp.1delta
+  echo "tarring up alleleseq"
+  tar czvf $OUTPREFIX.alleleseq.raw.tgz $OUTPREFIX.alleleseq
 fi
 
