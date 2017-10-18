@@ -5,9 +5,11 @@ use strict;
 my $OVERRULE_HOMOZYGOUS_FACTOR = 5;
 my $OVERRULE_HOMOZYGOUS_MINREADS = 5;
 
-my $PHASESVS = 1;
+my $PHASE_SVS = 1;
 my $SVTOOLONG = 1.2;
 my $SVTOOSHORT = 0.8;
+my $REPORT_INVALID_LEN_INSERTIONS = 1;
+my $MIN_PHASED_SNV = 5;
 
 my $USAGE = "splicephase.pl phased.vcf sniffles.vcf loadreads.hairs spliced.vcf ref.fa\n";
 
@@ -43,10 +45,12 @@ sub getseq
 
   my $end = $pos + $svlen;
 
-  # print "Running samtools faidx $REFFASTA \"$chr:$pos-$end\"\n";
-  system("samtools faidx $REFFASTA \"$chr:$pos-$end\" > splicephase.tmp");
+  my $TMPFILE = ".splicephase.tmp";
 
-  open RAW, "splicephase.tmp" or die "Cant open ($!)\n";
+  # print "Running samtools faidx $REFFASTA \"$chr:$pos-$end\"\n";
+  system("samtools faidx $REFFASTA \"$chr:$pos-$end\" > $TMPFILE");
+
+  open RAW, "$TMPFILE" or die "Cant open ($!)\n";
 
   my $seq = "";
 
@@ -59,6 +63,8 @@ sub getseq
 
   # print ">$chr:$pos-$end\n";
   # print "$seq\n";
+  #
+  system("rm -f $TMPFILE");
 
   return $seq;
 }
@@ -143,7 +149,9 @@ while (<SNIFFLESVCF>)
     $v->{reads}  = [];
 
     $snifflesvarianttypes{$alt}->{all}++;
+    $snifflesvarianttypes{$alt}->{reported} = 0;
     $snifflesvarianttypes{$alt}->{phased} = 0;
+    $snifflesvarianttypes{$alt}->{unphased} = 0;
 
     my ($genotype, $other) = split /:/, $sample;
     $v->{genotype} = $genotype;
@@ -278,7 +286,9 @@ foreach my $rid (sort {lc($a) cmp lc($b)} keys %readstophase)
 print SVPHASE "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\thap2\t| hap hap1r\t|\tnewgenotype\tincludesv\toverrulehomo\n";
 print SVPHASEDETAILS "chr:pos:genotype\ttype\tsvlen\tseqlen\t|\tnumreads\thap1\thap2\t| hap hap1r\t|\tnewgenotype\tincludesv\toverrulehomo\n";
 
+my $reportedsvs = 0;
 my $phasedsvs = 0;
+my $unphasedsvs = 0;
 my $allsniffles = 0;
 my $svlenerr = 0;
 my $genotypeerr = 0;
@@ -319,9 +329,11 @@ foreach my $chr (sort keys %snifflesvariants)
         ## phase the genotype call
         my $newgenotype = $genotype;
         my $overrulehomo = 0;
+        my $isphased = 0;
 
         if ($genotype eq "1/1")
         {
+          $isphased = 1;
           $newgenotype = "1|1";
 
           if ($numreads >= $OVERRULE_HOMOZYGOUS_MINREADS)
@@ -332,8 +344,18 @@ foreach my $chr (sort keys %snifflesvariants)
         }
         elsif (($genotype eq "0/1") || ($genotype eq "0/0"))
         {
-          if    ($hap eq "hapA") { $newgenotype = "1|0"; }
-          elsif ($hap eq "hapB") { $newgenotype = "0|1"; }
+          if (($hap1 + $hap2) < $MIN_PHASED_SNV)
+          {
+            $isphased = 0;
+            if    ($hap eq "hapA") { $newgenotype = "1/0"; }
+            elsif ($hap eq "hapB") { $newgenotype = "0/1"; }
+          }
+          else
+          {
+            $isphased = 1;
+            if    ($hap eq "hapA") { $newgenotype = "1|0"; }
+            elsif ($hap eq "hapB") { $newgenotype = "0|1"; }
+          }
         }
 
         my $slen = 0;
@@ -362,18 +384,17 @@ foreach my $chr (sort keys %snifflesvariants)
             my $seqlen = length ($v->{seq});
             my $svlen = $v->{svlen};
 
+            $includesv = 1;
+
             if (($seqlen < ($SVTOOSHORT * $svlen)) || ($seqlen > ($SVTOOLONG * $svlen)))
             {
-              print "ERROR: reported insertion sequencing length ($seqlen) significantly differs from reported SV size ($svlen)\n";
-              $includesv = 0;
+              print "WARNING reported insertion sequencing length ($seqlen) significantly differs from reported SV size ($svlen)\n";
+              $includesv = $REPORT_INVALID_LEN_INSERTIONS;;
               $svlenerr++;
             }
-            else
-            {
-              $v->{alt} = "X" . $v->{seq};
-              $v->{ref} = "X";
-              $includesv = 1;
-            }
+
+            $v->{alt} = "X" . $v->{seq};
+            $v->{ref} = "X";
           }
           else
           { 
@@ -391,13 +412,25 @@ foreach my $chr (sort keys %snifflesvariants)
         print SVPHASE "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\t$overrulehomo\n";
         print SVPHASEDETAILS "$chr:$pos:$genotype\t$type\t$svlen\t$slen\t|\t$numreads\t$hap1\t$hap2\t| $hap\t$hap1r\t|\t$newgenotype\t$includesv\t$overrulehomo\n";
 
-        if ($includesv && $PHASESVS)
+        if ($includesv && $PHASE_SVS)
         {
           # Now update the variant phase and splice into the others
           substr($v->{sample}, 0, 3) = $newgenotype;
           $vcfdata{$chr}->{$pos} = $v;
-          $phasedsvs++;
-          $snifflesvarianttypes{$type}->{phased}++;
+          $reportedsvs++;
+
+          $snifflesvarianttypes{$type}->{reported}++;
+
+          if ($isphased)
+          {
+            $snifflesvarianttypes{$type}->{phased}++;
+            $phasedsvs++;
+          }
+          else
+          {
+            $snifflesvarianttypes{$type}->{unphased}++;
+            $unphasedsvs++;
+          }
         }
       }
       else
@@ -409,14 +442,16 @@ foreach my $chr (sort keys %snifflesvariants)
   }
 }
 
-print "Finished phasing $phasedsvs svs of $allsniffles attempted ($sniffleslines all). svlenerr: $svlenerr genotyperr: $genotypeerr\n";
-print "type all phased:";
+print "Reported $reportedsvs, phased $phasedsvs, unphased: $unphasedsvs of $allsniffles attempted ($sniffleslines all). svlenerr: $svlenerr genotyperr: $genotypeerr\n";
+print "type all reported phased unphased:";
 
 foreach my $t (sort keys %snifflesvarianttypes)
 {
   my $n = $snifflesvarianttypes{$t}->{all};
+  my $r = $snifflesvarianttypes{$t}->{reported};
   my $p = $snifflesvarianttypes{$t}->{phased};
-  print " $t $n $p";
+  my $u = $snifflesvarianttypes{$t}->{unphased};
+  print " $t $n $r $p $u";
 }
 print "\n";
 
