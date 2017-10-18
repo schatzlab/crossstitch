@@ -236,7 +236,8 @@ fi
 if [ ! -r data/spliced.vcf ]
 then
   echo "Splicing in phased SVs"
-  ../../splicephase.pl data/matesAll.phased.vcf data/pbAll.sniffles.vcf data/pbAll.hairs data/spliced.vcf base.fa
+  ../../splicephase.pl data/matesAll.phased.vcf data/pbAll.sniffles.vcf data/pbAll.hairs data/spliced.vcf base.fa >& data/spliced.vcf.log
+  cat data/spliced.vcf.log
 fi
 
 if [ ! -r data/spliced.vcf.svphase.status ]
