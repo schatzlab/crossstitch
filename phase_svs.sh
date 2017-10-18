@@ -29,14 +29,20 @@ echo
 
 if [ ! -r $OUTPREFIX.hairs ]
 then
-  echo "extracting pacbio-hairs from snps"
-  extractHAIRS --bam $LONGREADSBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
+  echo "extracting pacbio-hairs from phased snps"
+  #extractHAIRS --bam $LONGREADSBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
+fi
+
+if [ ! -r $OUTPREFIX.scrubbed.vcf ]
+then
+  echo "Scrubbing SV calls"
+  $BINDIR/scrubsvs.pl $STRUCTURALVARIANTS > $OUTPREFIX.scrubbed.vcf >& $OUTPREFIX.scrubbed.log
 fi
 
 if [ ! -r $OUTPREFIX.spliced.vcf ]
 then
   echo "Splicing in phased SVs"
-  $BINDIR/splicephase.pl $PHASEDSNPS $STRUCTURALVARIANTS $OUTPREFIX.hairs $OUTPREFIX.spliced.vcf $GENOME >& $OUTPREFIX.spliced.log
+  $BINDIR/splicephase.pl $PHASEDSNPS $OUTPREFIX.scrubbed.vcf $OUTPREFIX.hairs $OUTPREFIX.spliced.vcf $GENOME >& $OUTPREFIX.spliced.log
 fi
 
 exit
