@@ -262,7 +262,7 @@ while (<READHAIRS>)
   }
 }
 
-print "Loaded $hairslines hairs records, found $foundhairs of $readcount involved in SVs\n";
+print "Scanned $hairslines hairs records, loaded $foundhairs of $readcount involved in SVs\n";
 
 
 ## Print phase status of reads to the log file
