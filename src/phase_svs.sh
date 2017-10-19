@@ -172,3 +172,16 @@ then
   cd ..
 fi
 
+if [ ! -r $AS/$OUTPREFIX.hap1.fa.gz ]
+then
+  echo "Making final diploid genome"
+  cat `ls $AS/*.chr*.hap1.fa | sort -V` > $AS/$OUTPREFIX.hap1.fa &
+  cat `ls $AS/*.chr*.hap2.fa | sort -V` > $AS/$OUTPREFIX.hap2.fa &
+
+  wait
+
+  echo "compressing"
+  pigz $AS/$OUTPREFIX.hap1.fa
+  pigz $AS/$OUTPREFIX.hap2.fa
+fi
+
