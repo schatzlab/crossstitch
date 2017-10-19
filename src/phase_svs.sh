@@ -63,15 +63,16 @@ then
   exit
 fi
 
-
+## Sanity checks passed, begin analysis
 
 GENOME=`readlink -f $GENOME`
-
+AS=$OUTPREFIX.alleleseq
+VCFID=`head -5000 $PHASEDSNPS | grep '#CHROM' | awk '{print $10}'`
 
 if [ ! -r $OUTPREFIX.hairs ]
 then
-  echo "extracting pacbio-hairs from phased snps"
-  extractHAIRS --bam $LONGREADSBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
+  echo "extracting pacbio-hairs from phased snps (mbq 0)"
+  extractHAIRS --mbq 0 --bam $LONGREADSBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
 fi
 
 if [ ! -r $OUTPREFIX.scrubbed.vcf ]
@@ -86,17 +87,19 @@ then
   $BINDIR/splicephase.pl $PHASEDSNPS $OUTPREFIX.scrubbed.vcf $OUTPREFIX.hairs $OUTPREFIX.spliced.vcf $GENOME >& $OUTPREFIX.spliced.log
 fi
 
-AS=$OUTPREFIX.alleleseq
-VCFID=`head -5000 $OUTPREFIX.spliced.vcf | grep '#CHROM' | awk '{print $10}'`
+if [ ! -r $OUTPREFIX.spliced.vcf.gz ]
+then
+  echo "compressing spliced vcf"
+  pigz -k $OUTPREFIX.spliced.vcf
+fi
 
 if [ ! -r $AS ]
 then
   mkdir -p $AS
   cd $AS
-  ln -s ../$OUTPREFIX.spliced.vcf
 
   echo "constructing diploid sequence with SNPs and SVs"
-  java -Xmx400000m -jar $VCF2DIPLOIDJAR -id $VCFID -pass -chr $GENOME -vcf $OUTPREFIX.spliced.vcf >& vcf2diploid.log
+  java -Xmx400000m -jar $VCF2DIPLOIDJAR -id $VCFID -pass -chr $GENOME -vcf ../$OUTPREFIX.spliced.vcf >& vcf2diploid.log
   cd ..
 fi
 
@@ -181,8 +184,9 @@ then
 
   wait
 
-  echo "compressing"
+  echo "compressing genome files"
   pigz $AS/$OUTPREFIX.hap1.fa
   pigz $AS/$OUTPREFIX.hap2.fa
 fi
+
 
