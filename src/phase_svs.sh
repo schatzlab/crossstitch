@@ -138,12 +138,13 @@ then
   then
     echo "male sample, making X and Y haploid"
     mv *chrX.hap2.fa *chrY.hap2.fa raw/attic
-    $BINDIR/removechain.pl raw/$OUTPREFIX.hap2.chain chrM chrX chrY > $OUTPREFIX.hap2.chain
+    cat raw/$OUTPREFIX.hap1.chain                                   | sed 's/paternal/hap1/' > $OUTPREFIX.hap1.chain
+    $BINDIR/removechain.pl raw/$OUTPREFIX.hap2.chain chrM chrX chrY | sed 's/maternal/hap2/' > $OUTPREFIX.hap2.chain
   else
     echo "female sample, stashing Y chromosome"
     mv *chrY* raw/attic
-    $BINDIR/removechain.pl raw/$OUTPREFIX.hap1.chain chrY           > $OUTPREFIX.hap1.chain
-    $BINDIR/removechain.pl raw/$OUTPREFIX.hap2.chain chrM chrY      > $OUTPREFIX.hap2.chain
+    $BINDIR/removechain.pl raw/$OUTPREFIX.hap1.chain chrY           | sed 's/paternal/hap1/' > $OUTPREFIX.hap1.chain
+    $BINDIR/removechain.pl raw/$OUTPREFIX.hap2.chain chrM chrY      | sed 's/maternal/hap2/' > $OUTPREFIX.hap2.chain
   fi
 
   echo "fixing map files"
