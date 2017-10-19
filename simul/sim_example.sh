@@ -6,6 +6,7 @@
 #set -xv
 set -e
 
+VCF2DIPLOID=/work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar
 SNPDIST=1000
 BASE=base.fa
 PARAM=simul.param
@@ -236,7 +237,7 @@ fi
 if [ ! -r data/spliced.vcf ]
 then
   echo "Splicing in phased SVs"
-  ../../splicephase.pl data/matesAll.phased.vcf data/pbAll.sniffles.vcf data/pbAll.hairs data/spliced.vcf base.fa >& data/spliced.vcf.log
+  ../../src/splicephase.pl data/matesAll.phased.vcf data/pbAll.sniffles.vcf data/pbAll.hairs data/spliced.vcf base.fa >& data/spliced.vcf.log
   cat data/spliced.vcf.log
 fi
 
@@ -247,6 +248,7 @@ then
   cat data/spliced.vcf.svphase.status
 fi
 
+
 if [ ! -r data/spliceddiploid/maternal.chain ]
 then
   mkdir -p data/spliceddiploid
@@ -255,7 +257,7 @@ then
   ln -s ../../base.fa
 
   echo "constructing diploid sequence with SNPs and SVs"
-  java -jar /work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar -id unknown -chr base.fa -vcf spliced.vcf
+  java -jar $VCF2DIPLOID -id unknown -chr base.fa -vcf spliced.vcf >& vcf2diploid.log
   cd ../..
 fi
 
