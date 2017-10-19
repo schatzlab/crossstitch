@@ -218,7 +218,7 @@ fi
 if [ ! -r data/pbAll.hairs ]
 then
   echo "extracting pacbio-hairs from snps"
-  extractHAIRS --bam data/pbAll.bam --VCF data/illAll.vcf --out data/pbAll.hairs
+  extractHAIRS --mbq 0 --bam data/pbAll.bam --VCF data/illAll.vcf --out data/pbAll.hairs
 fi
 
 # if [ ! -r data/pbAll.hapcut ]
