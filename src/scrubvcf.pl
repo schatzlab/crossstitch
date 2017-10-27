@@ -3,26 +3,6 @@ use strict;
 
 my $STRIP_OVERLAP = 0;
 
-if (scalar @ARGV > 0)
-{
-  if ($ARGV[0] eq "-h")
-  {
-    print "USAGE: scrubvcf.pl [-o] orig.vcf > new.vcf\n";
-    print "\n";
-    print " By default, scrub variants that arent on chr1-22, chrX, chrY or are not INS, DEL, INV\n";
-    print " In -o mode, remove any overlapping variants or variants not on chr1-22, chrX, chrY\n";
-    print "             but DONT scrub any variant types\n";
-
-    exit(0);
-  }
-  elsif ($ARGV[0] eq "-o")
-  {
-    print STDERR "stripping overlapping calls\n";
-    $STRIP_OVERLAP = 1;
-    shift @ARGV;
-  }
-}
-
 ## Only report variants on chr1 - chr22, chrX, chrY
 my %chrom;
 for (my $i = 1; $i <= 22; $i++)
@@ -38,6 +18,33 @@ my %types;
 $types{"<INS>"} = 0;
 $types{"<DEL>"} = 0;
 $types{"<INV>"} = 0;
+
+if (scalar @ARGV > 0)
+{
+  if ($ARGV[0] eq "-h")
+  {
+    print "USAGE: scrubvcf.pl [-o male|female] orig.vcf > new.vcf\n";
+    print "\n";
+    print " By default, scrub variants that arent on chr1-22, chrX, chrY or are not INS, DEL, INV\n";
+    print "\n";
+    print " In -o mode, remove any overlapping variants or variants not on chr1-22, chrX, chrY (if gender = female)\n";
+    print "             but DONT scrub any variant types\n";
+
+    exit(0);
+  }
+  elsif ($ARGV[0] eq "-o")
+  {
+    $STRIP_OVERLAP = 1;
+    shift @ARGV;
+    my $gender = shift @ARGV;
+    print STDERR "stripping overlapping calls (gender = $gender)\n";
+
+    if    ($gender eq "male")   { }  ## nothing to do 
+    elsif ($gender eq "female") { delete $chrom{"chrY"}; }
+    else  { die "Unknown gender: $gender\n"; }
+  }
+}
+
 
 my $all = 0;
 my $reported = 0;
@@ -129,10 +136,9 @@ while (<>)
   }
 }
 
-print STDERR "Reported $reported of $all variants:";
+print STDERR "## Reported $reported of $all variants:\n";
 foreach my $t (sort keys %types)
 {
   my $n = $types{$t};
-  print STDERR " $t $n";
+  print STDERR "$t $n\n";
 }
-print STDERR "\n";
