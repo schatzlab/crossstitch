@@ -87,10 +87,16 @@ then
   $BINDIR/splicephase.pl $PHASEDSNPS $OUTPREFIX.scrubbed.vcf $OUTPREFIX.hairs $OUTPREFIX.spliced.vcf $GENOME >& $OUTPREFIX.spliced.log
 fi
 
-if [ ! -r $OUTPREFIX.spliced.vcf.gz ]
+if [ ! -r $OUTPREFIX.spliced.scrubbed.vcf ]
 then
-  echo "compressing spliced vcf"
-  pigz -k $OUTPREFIX.spliced.vcf
+  echo "Final scrub to remove overlapping spliced variants"
+  ($BINDIR/scrubvcf.pl -o $GENDER $OUTPREFIX.spliced.vcf > $OUTPREFIX.spliced.scrubbed.vcf) >& $OUTPREFIX.spliced.scrubbed.log
+fi
+
+if [ ! -r $OUTPREFIX.spliced.scrubbed.vcf.gz ]
+then
+  echo "compressing spliced scrubbed vcf"
+  pigz -k $OUTPREFIX.spliced.scrubbed.vcf
 fi
 
 if [ ! -r $AS ]
@@ -99,7 +105,7 @@ then
   cd $AS
 
   echo "constructing diploid sequence with SNPs and SVs"
-  java -Xmx400000m -jar $VCF2DIPLOIDJAR -id $VCFID -pass -chr $GENOME -vcf ../$OUTPREFIX.spliced.vcf >& vcf2diploid.log
+  java -Xmx400000m -jar $VCF2DIPLOIDJAR -id $VCFID -pass -chr $GENOME -vcf ../$OUTPREFIX.spliced.scrubbed.vcf >& vcf2diploid.log
   cd ..
 fi
 
