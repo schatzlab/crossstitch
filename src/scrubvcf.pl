@@ -97,10 +97,10 @@ while (<>)
 
       if ((defined $lastchr) && ($chr eq $lastchr))
       {
-        if (($hap == 0) || ($hap == 2)) { if ($pos < $lastpos0) 
+        if (($hap == 0) || ($hap == 2)) { if ($pos <= $lastpos0) 
         { $printvar = 0; $types{"FAIL_$hap"}++; print STDERR " overlap detected on hap $hap (lastpos: $lastpos0 $lastref0 $lastalt0) at $_"; } }
 
-        if (($hap == 1) || ($hap == 2)) { if ($pos < $lastpos1) 
+        if (($hap == 1) || ($hap == 2)) { if ($pos <= $lastpos1) 
         { $printvar = 0; $types{"FAIL_$hap"}++; print STDERR " overlap detected on hap $hap (lastpos: $lastpos1 $lastref1 $lastalt1) at $_"; } }
       } 
 
