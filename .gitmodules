@@ -1,0 +1,3 @@
+[submodule "sv"]
+	path = sv
+	url = git@github.com:mkirsche/sv.git

@@ -6,7 +6,7 @@
 #set -xv
 set -e
 
-VCF2DIPLOID=/work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar
+VCF2DIPLOID=/home/mkirsche/build/vcf2diploid/vcf2diploid.jar
 SNPDIST=1000
 BASE=base.fa
 PARAM=simul.param
@@ -46,13 +46,13 @@ fi
 if [ ! -r data/pbA.fa ]
 then
   echo "Simulating PacBio reads for hapA"
-  SURVIVOR 2 simul data/mutA.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbA.fa
+  /home/mkirsche/bin/SURVIVOR-PHANTOM 2 simul data/mutA.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbA.fa
 fi
 
 if [ ! -r data/pbB.fa ]
 then
   echo "Simulating PacBio reads for hapB"
-  SURVIVOR 2 simul data/mutB.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbB.fa
+  /home/mkirsche/bin/SURVIVOR-PHANTOM 2 simul data/mutB.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbB.fa
 fi
 
 if [ ! -r data/pbAll.fa ]
@@ -75,13 +75,14 @@ if [ ! -r data/pbAll.sniffles.vcf ]
 then
   echo "Calling variants with Sniffles"
   READSTOPHASE=1000
-  /work-zfs/mschatz1/mschatz/build/Sniffles/bin/sniffles-core-1.0.6/sniffles -s $SNIFFLES_MIN_READS --min_het_af $SNIFFLES_MIN_HET_AF  -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype --report_seq -n $READSTOPHASE
+  /home/mkirsche/bin/sniffles -s $SNIFFLES_MIN_READS --min_het_af $SNIFFLES_MIN_HET_AF  -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype --report_seq --ignore_sd -n $READSTOPHASE
 fi
 
 
 ## Simulate Illumina Reads
 ###############################################################################
 
+sed -i '/^\s*$/d' data/mutA.fasta
 
 if [ ! -r data/illA.1.fq ]
 then
@@ -90,6 +91,8 @@ then
   echo "simulating $numpairs pairs for hapA"
   mason_simulator -ir data/mutA.fasta -n $numpairs -o data/illA.1.fq -or data/illA.2.fq --num-threads $THREADS
 fi
+
+sed -i '/^\s*$/d' data/mutB.fasta
 
 if [ ! -r data/illB.1.fq ]
 then
@@ -207,7 +210,7 @@ fi
 if [ ! -r data/matesAll.phased.vcf ]
 then
   echo "Making a new phased vcf file from mates phasing + illumina snps"
-  java -jar ~/build/fgbio/target/scala-2.12/fgbio-0.2.1-SNAPSHOT.jar HapCutToVcf -i data/matesAll.hapcut -v data/illAll.vcf -o data/matesAll.phased.vcf
+  java -jar ~/build/fgbio/target/scala-2.12/fgbio-0.4.0-SNAPSHOT.jar HapCutToVcf -i data/matesAll.hapcut -v data/illAll.vcf -o data/matesAll.phased.vcf
 fi
 
 
@@ -233,11 +236,26 @@ fi
 #   java -jar ~/build/fgbio/target/scala-2.12/fgbio-0.2.1-SNAPSHOT.jar HapCutToVcf -i data/pbAll.hapcut -v data/illAll.vcf -o data/pbAll.phased.vcf
 # fi
 
+refine='1'
+
+if [ "$refine" -gt 0 ]
+    then 
+    if [ ! -r data/pbAll.refined.vcf ]
+    then
+      echo "Refining SVs"
+      ../../sv/go.sh -v data/pbAll.sniffles.vcf -b data/pbAll.bam -f base.fa -o data/pbAll.refined.vcf
+    fi
+fi
+
+if [ ! -r data/pbAll.refined.vcf ]
+then
+    cp data/pbAll.sniffles.vcf data/pbAll.refined.vcf
+fi
 
 if [ ! -r data/spliced.vcf ]
 then
   echo "Splicing in phased SVs"
-  ../../src/splicephase.pl data/matesAll.phased.vcf data/pbAll.sniffles.vcf data/pbAll.hairs data/spliced.vcf base.fa >& data/spliced.vcf.log
+  ../../src/splicephase.pl data/matesAll.phased.vcf data/pbAll.refined.vcf data/pbAll.hairs data/spliced.vcf base.fa >& data/spliced.vcf.log
   cat data/spliced.vcf.log
 fi
 
@@ -281,7 +299,7 @@ fi
 
 
 
-SHOWCOORDS=0
+SHOWCOORDS=1
 
 if [  $# -gt 0 ]
 then 
