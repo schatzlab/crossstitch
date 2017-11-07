@@ -75,10 +75,26 @@ then
   extractHAIRS --mbq 0 --bam $LONGREADSBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
 fi
 
+refine='1'
+
+if [ "$refine" -gt 0 ]
+    then 
+    if [ ! -r data/pbAll.refined.vcf ]
+    then
+      echo "Refining SVs"
+      ../sv/go.sh -v $STRUCTURALVARIANTS -b $LONGREADSBAM -f $GENOME -o $OUTPREFIX.refined.vcf
+    fi
+fi
+
+if [ ! -r $OUTPREFIX.refined.vcf ]
+then
+    cp $STRUCTURALVARIANTS $OUTPREFIX.refined.vcf
+fi
+
 if [ ! -r $OUTPREFIX.scrubbed.vcf ]
 then
   echo "Scrubbing SV calls"
-  ($BINDIR/scrubvcf.pl $STRUCTURALVARIANTS > $OUTPREFIX.scrubbed.vcf) >& $OUTPREFIX.scrubbed.log
+  ($BINDIR/scrubvcf.pl $OUTPREFIX.refined.vcf > $OUTPREFIX.scrubbed.vcf) >& $OUTPREFIX.scrubbed.log
 fi
 
 if [ ! -r $OUTPREFIX.spliced.vcf ]
