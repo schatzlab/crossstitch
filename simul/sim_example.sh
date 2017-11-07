@@ -46,13 +46,13 @@ fi
 if [ ! -r data/pbA.fa ]
 then
   echo "Simulating PacBio reads for hapA"
-  /home/mkirsche/bin/SURVIVOR-PHANTOM 2 simul data/mutA.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbA.fa
+  /home/mkirsche/bin/SURVIVOR 2 simul data/mutA.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbA.fa
 fi
 
 if [ ! -r data/pbB.fa ]
 then
   echo "Simulating PacBio reads for hapB"
-  /home/mkirsche/bin/SURVIVOR-PHANTOM 2 simul data/mutB.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbB.fa
+  /home/mkirsche/bin/SURVIVOR 2 simul data/mutB.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbB.fa
 fi
 
 if [ ! -r data/pbAll.fa ]
