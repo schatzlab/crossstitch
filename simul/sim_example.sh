@@ -7,6 +7,20 @@
 set -e
 
 VCF2DIPLOID=/home/mkirsche/build/vcf2diploid/vcf2diploid.jar
+SNIFFLES=/home/mkirsche/bin/sniffles
+SURVIVOR=/home/mkirsche/bin/SURVIVOR
+SURVIVORLRSIM=SURVIVOR-LRSIM
+FGBIO=~/build/fgbio/target/scala-2.12/fgbio-0.4.0-SNAPSHOT.jar
+
+if [ $USER="mschatz1@jhu.edu" ]
+then
+VCF2DIPLOID=/work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar
+SNIFFLES=/work-zfs/mschatz1/mschatz/build/Sniffles/bin/sniffles-core-1.0.6/sniffles
+SURVIVOR=/work-zfs/mschatz1/mschatz/build/SURVIVOR/Debug/SURVIVOR
+FGBIO=/home-3/mschatz1@jhu.edu/build/fgbio/target/scala-2.12/fgbio-0.2.1-SNAPSHOT.jar
+fi
+
+
 SNPDIST=1000
 BASE=base.fa
 PARAM=simul.param
@@ -32,7 +46,7 @@ fi
 if [ ! -r data/mutA.fasta ]
 then
   echo "Simulating variants"
-  SURVIVOR-LRSIM 0 $BASE $PARAM 0 data/mut $SNPDIST
+  $SURVIVORLRSIM 0 $BASE $PARAM 0 data/mut $SNPDIST
 fi
 
 if [ ! -r data/svs.summary ]
@@ -46,13 +60,13 @@ fi
 if [ ! -r data/pbA.fa ]
 then
   echo "Simulating PacBio reads for hapA"
-  /home/mkirsche/bin/SURVIVOR 2 simul data/mutA.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbA.fa
+  $SURVIVOR 2 simul data/mutA.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbA.fa
 fi
 
 if [ ! -r data/pbB.fa ]
 then
   echo "Simulating PacBio reads for hapB"
-  /home/mkirsche/bin/SURVIVOR 2 simul data/mutB.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbB.fa
+  $SURVIVOR 2 simul data/mutB.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbB.fa
 fi
 
 if [ ! -r data/pbAll.fa ]
@@ -75,7 +89,7 @@ if [ ! -r data/pbAll.sniffles.vcf ]
 then
   echo "Calling variants with Sniffles"
   READSTOPHASE=1000
-  /home/mkirsche/bin/sniffles -s $SNIFFLES_MIN_READS --min_het_af $SNIFFLES_MIN_HET_AF  -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype --report_seq --ignore_sd -n $READSTOPHASE
+  $SNIFFLES -s $SNIFFLES_MIN_READS --min_het_af $SNIFFLES_MIN_HET_AF  -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype --report_seq --ignore_sd -n $READSTOPHASE
 fi
 
 
@@ -210,7 +224,7 @@ fi
 if [ ! -r data/matesAll.phased.vcf ]
 then
   echo "Making a new phased vcf file from mates phasing + illumina snps"
-  java -jar ~/build/fgbio/target/scala-2.12/fgbio-0.4.0-SNAPSHOT.jar HapCutToVcf -i data/matesAll.hapcut -v data/illAll.vcf -o data/matesAll.phased.vcf
+  java -jar $FGBIO HapCutToVcf -i data/matesAll.hapcut -v data/illAll.vcf -o data/matesAll.phased.vcf
 fi
 
 
