@@ -46,13 +46,13 @@ fi
 if [ ! -r data/pbA.fa ]
 then
   echo "Simulating PacBio reads for hapA"
-  /home/mkirsche/bin/SURVIVOR 2 simul data/mutA.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbA.fa
+  ~/bin/SURVIVOR 2 simul data/mutA.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbA.fa
 fi
 
 if [ ! -r data/pbB.fa ]
 then
   echo "Simulating PacBio reads for hapB"
-  /home/mkirsche/bin/SURVIVOR 2 simul data/mutB.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbB.fa
+  ~/bin/SURVIVOR 2 simul data/mutB.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbB.fa
 fi
 
 if [ ! -r data/pbAll.fa ]
@@ -75,7 +75,7 @@ if [ ! -r data/pbAll.sniffles.vcf ]
 then
   echo "Calling variants with Sniffles"
   READSTOPHASE=1000
-  /home/mkirsche/bin/sniffles -s $SNIFFLES_MIN_READS --min_het_af $SNIFFLES_MIN_HET_AF  -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype --report_seq --ignore_sd -n $READSTOPHASE
+  ~/bin/sniffles -s $SNIFFLES_MIN_READS --min_het_af $SNIFFLES_MIN_HET_AF  -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype --report_seq --ignore_sd -n $READSTOPHASE
 fi
 
 
