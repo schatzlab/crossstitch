@@ -6,13 +6,12 @@
 #set -xv
 set -e
 
-VCF2DIPLOID=/home/mkirsche/build/vcf2diploid/vcf2diploid.jar
-SNIFFLES=/home/mkirsche/bin/sniffles
-SURVIVOR=/home/mkirsche/bin/SURVIVOR
+VCF2DIPLOID=/home-3/mkirsche@jhu.edu/build/vcf2diploid/vcf2diploid.jar
+SNIFFLES=/home-3/mkirsche@jhu.edu/bin/sniffles
+SURVIVOR=/home-3/mkirsche@jhu.edu/bin/SURVIVOR
 SURVIVORLRSIM=SURVIVOR-LRSIM
-FGBIO=~/build/fgbio/target/scala-2.12/fgbio-0.4.0-SNAPSHOT.jar
-
-if [ $USER="mschatz1@jhu.edu" ]
+FGBIO=/home-3/mkirsche@jhu.edu/build/fgbio/target/scala-2.12/fgbio-0.4.0-SNAPSHOT.jar
+if [ $USER = "mschatz1@jhu.edu" ]
 then
 VCF2DIPLOID=/work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar
 SNIFFLES=/work-zfs/mschatz1/mschatz/build/Sniffles/bin/sniffles-core-1.0.6/sniffles
@@ -219,7 +218,6 @@ then
   echo "phase pacbio reads"
   HAPCUT2 --fragments data/matesAll.hairs --vcf data/illAll.vcf --output data/matesAll.hapcut
 fi
-
 
 if [ ! -r data/matesAll.phased.vcf ]
 then
