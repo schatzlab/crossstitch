@@ -82,7 +82,7 @@ if [ "$refine" -gt 0 ]
     if [ ! -r data/pbAll.refined.vcf ]
     then
       echo "Refining SVs"
-      ../sv/go.sh -v $STRUCTURALVARIANTS -b $LONGREADSBAM -f $GENOME -o $OUTPREFIX.refined.vcf
+      $BINDIR/../sv/go.sh -v $STRUCTURALVARIANTS -b $LONGREADSBAM -f $GENOME -o $OUTPREFIX.refined.vcf
     fi
 fi
 
