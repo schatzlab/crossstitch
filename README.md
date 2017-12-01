@@ -6,4 +6,6 @@ Code for phasing SVs with SNPs
 
 ```
 $ git clone --recursive https://github.com/schatzlab/phase_sniffles.git
+$ cd vcf2diploid
+$ make
 ```
