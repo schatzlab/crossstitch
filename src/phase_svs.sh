@@ -1,13 +1,11 @@
 #!/bin/bash
 
-VCF2DIPLOIDJAR=/work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar
-
 #set -xv
 set -e
 
-if [ $# -ne 6 ]
+if [ $# -ne 7 ]
 then
-  echo "USAGE: phase_svs.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix gender"
+  echo "USAGE: phase_svs.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix gender refine"
   exit
 fi
 
@@ -18,6 +16,11 @@ LONGREADSBAM=$3
 GENOME=$4
 OUTPREFIX=$5
 GENDER=$6
+REFINE=$7
+
+VCF2DIPLOIDJAR=$BINDIR/../vcf2diploid/vcf2diploid.jar
+EXTRACTHAIRS=extractHAIRS
+GZIP=pigz
 
 echo "phase_svs.sh"
 echo "  BINDIR: $BINDIR"
@@ -26,6 +29,7 @@ echo "  STRUCTURALVARIANTS: $STRUCTURALVARIANTS"
 echo "  LONGREADSBAM: $LONGREADSBAM"
 echo "  GENOME: $GENOME"
 echo "  GENDER: $GENDER"
+echo "  REFINE: $REFINE"
 echo 
 echo "  OUT: $OUTPREFIX"
 echo
@@ -72,23 +76,22 @@ VCFID=`head -5000 $PHASEDSNPS | grep '#CHROM' | awk '{print $10}'`
 if [ ! -r $OUTPREFIX.hairs ]
 then
   echo "extracting pacbio-hairs from phased snps (mbq 0)"
-  extractHAIRS --mbq 0 --bam $LONGREADSBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
+  $EXTRACTHAIRS --mbq 0 --bam $LONGREADSBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
 fi
 
-refine='1'
-
-if [ "$refine" -gt 0 ]
-    then 
-    if [ ! -r data/pbAll.refined.vcf ]
-    then
-      echo "Refining SVs"
-      $BINDIR/../sv/go.sh -v $STRUCTURALVARIANTS -b $LONGREADSBAM -f $GENOME -o $OUTPREFIX.refined.vcf
-    fi
-fi
-
-if [ ! -r $OUTPREFIX.refined.vcf ]
-then
+if [[ $REFINE == "1" ]]
+then 
+  if [ ! -r data/pbAll.refined.vcf ]
+  then
+    echo "Refining SVs"
+    $BINDIR/../sv/go.sh -v $STRUCTURALVARIANTS -b $LONGREADSBAM -f $GENOME -o $OUTPREFIX.refined.vcf
+  fi
+else
+  if [ ! -r data/pbAll.refined.vcf ]
+  then
+    echo "Skip SV refinement"
     cp $STRUCTURALVARIANTS $OUTPREFIX.refined.vcf
+  fi
 fi
 
 if [ ! -r $OUTPREFIX.scrubbed.vcf ]
@@ -112,7 +115,7 @@ fi
 if [ ! -r $OUTPREFIX.spliced.scrubbed.vcf.gz ]
 then
   echo "compressing spliced scrubbed vcf"
-  pigz -k $OUTPREFIX.spliced.scrubbed.vcf
+  $GZIP -c $OUTPREFIX.spliced.scrubbed.vcf > $OUTPREFIX.spliced.scrubbed.vcf.gz
 fi
 
 if [ ! -r $AS ]
@@ -207,8 +210,8 @@ then
   wait
 
   echo "compressing genome files"
-  pigz $AS/$OUTPREFIX.hap1.fa
-  pigz $AS/$OUTPREFIX.hap2.fa
+  $GZIP -c $AS/$OUTPREFIX.hap1.fa > $AS/$OUTPREFIX.hap1.fa.gz
+  $GZIP -c $AS/$OUTPREFIX.hap2.fa > $AS/$OUTPREFIX.hap2.fa.gz
 fi
 
 
