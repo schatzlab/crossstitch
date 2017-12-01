@@ -1,3 +1,6 @@
 [submodule "sv"]
 	path = sv
 	url = https://github.com/mkirsche/sv.git
+[submodule "vcf2diploid"]
+	path = vcf2diploid
+	url = https://github.com/mschatz/vcf2diploid.git
