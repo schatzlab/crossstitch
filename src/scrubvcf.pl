@@ -8,10 +8,13 @@ my %chrom;
 for (my $i = 1; $i <= 22; $i++)
 {
   $chrom{"chr$i"} = 0;
+  $chrom{"$i"} = 0;
 }
 
 $chrom{"chrX"} = 0;
+$chrom{"X"} = 0;
 $chrom{"chrY"} = 0;
+$chrom{"Y"} = 0;
 
 ## Types to report
 my %types;
