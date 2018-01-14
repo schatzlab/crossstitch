@@ -3,7 +3,7 @@
 ## Installation
 
 ```
-$ git clone --recursive https://github.com/schatzlab/phase_sniffles.git
+$ git clone --recursive https://github.com/schatzlab/crossstitch.git
 $ cd vcf2diploid
 $ make
 ```
