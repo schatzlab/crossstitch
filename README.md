@@ -1,6 +1,4 @@
-# phase_sniffles
-Code for phasing SVs with SNPs
-
+# CrossStitch: Hybrid Phasing and Personal Genome Construction
 
 ## Installation
 
