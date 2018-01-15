@@ -1,0 +1,10 @@
+*.class
+results/
+assembly/
+alignments/
+falconsense_output/
+inserts/
+seqs/
+ins.fa
+out.delta
+
