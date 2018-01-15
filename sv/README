@@ -1,25 +1,5 @@
-Determines sequences of inserts detected by sniffles
-
 To run:
 
-cd pitchfork
-make init
-make blasr
-cd ../
-./go.sh
+./go.sh -v $STRUCTURALVARIANTS -b $LONGREADSBAM -f $GENOME -o $OUTPREFIX.refined.vcf
 
 
-Dependencies:
-
-samtools
-python 2
-
-
-Files needed (currently set as variables in go.sh):
-
-vcfFile (output from sniffles)
-bamFile (all reads)
-fastaFile (reference genome)
-
-Output:
-Folder seqs with files <pos>.insert containing insert sequence at position <pos>
