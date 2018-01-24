@@ -33,6 +33,7 @@ public static void main(String[] args) throws IOException
 		int n = alignmentTypes.length;
 		int startPos = -1, endPos = -1;
 		int bestDist = maxDist+1;
+		boolean softClipped = false;
 		for(int i = 0; i<n; i++)
 		{
 			int len = alignmentLengths[i];
@@ -45,6 +46,8 @@ public static void main(String[] args) throws IOException
 					bestDist = Math.abs(refIdx - pos);
 					startPos = idx;
 					endPos = idx + len;
+					if(t == 'S') softClipped = true;
+					else softClipped = false;
 				}
 			}
 			if(t != 'D' && t != 'H') idx += len;
@@ -55,7 +58,8 @@ public static void main(String[] args) throws IOException
 			int startIdx = Math.max(0, startPos - flank);
 			int endIdx = Math.min(idx, endPos + flank);
 			System.out.println(">" + name);
-			System.out.println(whole ? seq : seq.substring(startIdx, endIdx));
+			System.out.println(seq.substring(startIdx, endIdx));
+			//System.out.println((whole || softClipped) ? seq : seq.substring(startIdx, endIdx));
 		}
 	}
 	

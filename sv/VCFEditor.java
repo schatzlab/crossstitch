@@ -63,7 +63,14 @@ public static void main(String[] args) throws IOException
 			{
 				String before = line.substring(0,i+4);
 				String after = line.substring(i+4);
-				after = readMap.get(ch+":"+curPos+"") + after.substring(after.indexOf(';'));
+				if(ins != null && ins.length() > 0)
+				{
+				    after = readMap.get(ch+":"+curPos+"") + after.substring(after.indexOf(';'));
+				}
+				else
+				{
+				    logout.println("Used sniffles output for " + (ch+":"+curPos+""));
+				}
 				out.println(before+after);
 				break;
 			}
