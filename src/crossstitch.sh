@@ -22,7 +22,7 @@ VCF2DIPLOIDJAR=$BINDIR/../vcf2diploid/vcf2diploid.jar
 EXTRACTHAIRS=extractHAIRS
 GZIP=pigz
 
-echo "phase_svs.sh"
+echo "crossstich.sh"
 echo "  BINDIR: $BINDIR"
 echo "  PHASEDSNPS: $PHASEDSNPS"
 echo "  STRUCTURALVARIANTS: $STRUCTURALVARIANTS"
