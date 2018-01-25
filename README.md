@@ -53,8 +53,8 @@ Details:
 
 ### Annotation files: 
 ```
-*.map: liftover file to relate coordinates on the personalized assembly to the reference (GRCh38) 
-*.chain: liftover file to relate coordinates on the personalized assembly to the reference (GRCh38) 
+*.map:   liftover file to relate coordinates on the personalized assembly to the reference (such as GRCh38) 
+*.chain: liftover file to relate coordinates on the personalized assembly to the reference (such as GRCh38) 
 ```
 
 
