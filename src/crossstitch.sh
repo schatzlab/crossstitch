@@ -5,7 +5,7 @@ set -e
 
 if [ $# -ne 7 ]
 then
-  echo "USAGE: phase_svs.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix gender refine"
+  echo "USAGE: crossstich.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix gender refine"
   exit
 fi
 
