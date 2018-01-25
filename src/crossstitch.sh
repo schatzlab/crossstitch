@@ -39,7 +39,7 @@ echo
 
 if [[ $GENDER != "male" && $GENDER != "female" ]]
 then
-  echo "Unknown gender: $GENDER"
+  echo "Unknown gender: $GENDER (must be male or female)"
   exit
 fi
 
