@@ -3,18 +3,19 @@ import java.io.*;
 public class BestInsertFinder2 {
 public static void main(String[] args) throws IOException
 {
-	int minLength = args.length > 3 ? Integer.parseInt(args[3]) : 30;
-	int maxDist = args.length > 4 ? Integer.parseInt(args[4]) : 5000;
+	String samFn = args[0];
 	int pos = Integer.parseInt(args[1]);
 	int offset = Integer.parseInt(args[2]);
-	//String samFn = "/home/mkirsche/study/reads/assembly_genome.sam";
-	String samFn = args[0];
+	String type = args[3]; // SEQ or POS
+	int minLength = args.length > 4 ? Integer.parseInt(args[4]) : 30;
+	int maxDist = args.length > 5 ? Integer.parseInt(args[5]) : 5000;
 	Scanner input = new Scanner(new FileInputStream(new File(samFn)));
 	String insertSeq = "";
 	String bestTig = "";
 	int middle = 0;
 	int bestScore = -987654321;
 	int genomeLength = -1;
+	int bestPos = pos;
 	while(input.hasNext())
 	{
 		String line = input.nextLine();
@@ -29,7 +30,7 @@ public static void main(String[] args) throws IOException
 					if(cur.length() >= 3 && cur.substring(0, 3).equals("LN:"))
 					{
 						genomeLength = Integer.parseInt(cur.substring(3));
-						middle = pos < offset ? pos : (offset + 1);
+						middle = pos < offset ? pos+1 : (offset + 1);
 						
 					}
 				}
@@ -58,16 +59,18 @@ public static void main(String[] args) throws IOException
 			{
 				if(score(refIdx, middle, len) > bestScore && len >= minLength && Math.abs(refIdx - middle) <= maxDist)
 				{
+				    bestPos = refIdx;
 					bestScore = score(refIdx, middle, len);
 					insertSeq = seq.substring(idx, idx+len);
 					bestTig = tigName;
 				}
 			}
-			if(t != 'D' && t != 'H') idx += len;
-			if(t != 'I' && t != 'S' && t != 'H') refIdx += len;
+			if(t != 'D' && t != 'H' && t != 'N' && t != 'P') idx += len;
+			if(t != 'I' && t != 'S' && t != 'H' && t != 'P') refIdx += len;
 		}
 	}
-	System.out.println(insertSeq);
+	if(type.equals("SEQ")) System.out.println(insertSeq);
+	else System.out.println(bestPos);
 }
 static int score(int pos, int middle, int len)
 {

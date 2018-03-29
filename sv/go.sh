@@ -55,7 +55,8 @@ java -cp "${BINDIR}" ReadFinder $WORKINGDIR/"${vcfFile}" $OUTDIR/inserts
 #done
 parallel "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaFile ::: $OUTDIR/inserts/*.txt.*
 wait
-cat $OUTDIR/seqs/* > $OUTDIR/all.seq
-java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $WORKINGDIR/$vcfFile $WORKINGDIR/$outputFile
+cat $OUTDIR/seqs/*.fa > $OUTDIR/all.seq
+cat $OUTDIR/seqs/*.pos > $OUTDIR/all.pos
+java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $OUTDIR/all.pos $WORKINGDIR/$vcfFile $WORKINGDIR/$fastaFile $WORKINGDIR/$outputFile
 
 

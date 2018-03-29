@@ -7,4 +7,12 @@ inserts/
 seqs/
 ins.fa
 out.delta
-
+testout*/
+*.seq
+*.vcf
+*.bam
+*.bai
+*.fa
+go_copy.sh
+*.log
+*.fai
