@@ -6,6 +6,8 @@ public static void main(String[] args) throws IOException
 	String readFn = args[0], posFn = args[1], vcfFn = args[2];
 	String outputFn = args[4];
 	String fastaFn = args[3];
+	int left = Integer.parseInt(args[5]);
+	int right = Integer.parseInt(args[6]);
 	Scanner readsInput = new Scanner(new FileInputStream(new File(readFn)));
 	Scanner vcfScanner = new Scanner(new FileInputStream(new File(vcfFn)));
 	Scanner posInput = new Scanner(new FileInputStream(new File(posFn)));
@@ -40,7 +42,41 @@ public static void main(String[] args) throws IOException
 		String ch = tokens[0];
 		if(!line.contains(find))
 		{
-		    out.println(line);
+		    if(line.contains("<DEL>"))
+		    {
+		        String seq = "";
+		        if(line.contains("SEQ=")) seq = getField(line, "SEQ");
+		        else
+		        {
+		            int start = curPos;
+		            int end = start + Integer.parseInt(getField(line, "SVLEN"));
+		            String command = "samtools faidx " + fastaFn + " " + ch + ":" + (start) + "-" + (end-1);
+		            Process child = Runtime.getRuntime().exec(command);
+                    InputStream seqStream = child.getInputStream();
+                    Scanner seqInput = new Scanner(seqStream);
+                    seqInput.next();
+                    while(seqInput.hasNext()) seq += seqInput.next();
+		        }
+		        StringTokenizer str = new StringTokenizer(line);
+		        int tokenIdx = 0;
+		        while(str.hasMoreTokens())
+		        {
+		            String cur = str.nextToken();
+	                if(tokenIdx == 3)
+	                {
+	                    cur = seq;
+	                }
+	                else if(tokenIdx == 4)
+	                {
+	                    cur = "X";
+	                }
+		            out.print(cur);
+		            if(str.hasMoreTokens()) out.print('\t');
+		            else out.println();
+		            tokenIdx++;
+		        }
+		    }
+		    else out.println(line);
 		    continue;
 		}
 		if(!readMap.containsKey(ch+":"+curPos+""))
@@ -67,7 +103,6 @@ public static void main(String[] args) throws IOException
 		}
 		StringTokenizer str = new StringTokenizer(output);
 		int tokenIdx = 0;
-		int left = 10, right = 10; // REF field will have left bases from before the insertion, and right bases from after
 		String command = "samtools faidx " + fastaFn + " " + ch + ":" + (svPos-left+1) + "-" + (svPos+right);
 		Process child = Runtime.getRuntime().exec(command);
         InputStream seqStream = child.getInputStream();
@@ -101,6 +136,19 @@ public static void main(String[] args) throws IOException
 	
 	out.close();
 	logout.close();
+}
+static String getField(String s, String field)
+{
+    int n = s.length(), m = field.length();
+    for(int i = 0; i+m+1 <= n; i++)
+    {
+        if(s.substring(i, i+m+1).equals(field+"="))
+        {
+            String after = s.substring(i+m+1);
+            return after.substring(0, after.indexOf(';'));
+        }
+    }
+    return "";
 }
 static String substitute(String s, String field, String val)
 {

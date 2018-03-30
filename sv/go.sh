@@ -57,6 +57,6 @@ parallel "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaFile ::: $OUTD
 wait
 cat $OUTDIR/seqs/*.fa > $OUTDIR/all.seq
 cat $OUTDIR/seqs/*.pos > $OUTDIR/all.pos
-java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $OUTDIR/all.pos $WORKINGDIR/$vcfFile $WORKINGDIR/$fastaFile $WORKINGDIR/$outputFile
+java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $OUTDIR/all.pos $WORKINGDIR/$vcfFile $WORKINGDIR/$fastaFile $WORKINGDIR/$outputFile 1 0
 
 
