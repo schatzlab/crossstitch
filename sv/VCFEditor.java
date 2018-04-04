@@ -13,8 +13,14 @@ public static void main(String[] args) throws IOException
 	String find = "<INS>";
 	while(readsInput.hasNext())
 	{
-		String id = readsInput.nextLine().substring(1);
+		String nextLine = readsInput.nextLine();
+		while(readsInput.hasNext() && nextLine.charAt(0) != '>')
+			nextLine = readsInput.nextLine();
+		String id = nextLine.substring(1);
+		
 		String seq = readsInput.nextLine();
+		//System.out.println(id+" "+seq);
+		//if(id.charAt(0) != 'i') return;
 		readMap.put(id.substring(id.indexOf('_')+1), seq);
 	}
 	while(vcfScanner.hasNext())
@@ -38,6 +44,11 @@ public static void main(String[] args) throws IOException
 		        break;
 		    }
 			index++;
+		}
+		if(curPos == -1 && tokens.length > 1)
+		{
+			ch = tokens[0];
+			curPos = Integer.parseInt(tokens[1]);
 		}
 		if(curPos == -1) continue;
 		if(!line.contains(find))

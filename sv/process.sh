@@ -64,7 +64,7 @@ if [ "$insert" != '' ]
 then
     echo $insert >> $OUTDIR/seqs/$x.fa
 else
-echo $oldinsert >> $OUTDIR/seqs/$x.fa
+    echo $oldinsert >> $OUTDIR/seqs/$x.fa
 fi
 
 rm $OUTDIR/samples/"$x".*
