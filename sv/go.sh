@@ -38,6 +38,9 @@ fi
 BLASR=/home-3/mkirsche\@jhu.edu/scratch/miniconda3/envs/blasr/bin/blasr
 PYTHON=python
 
+INSERT_BEFORE=1 # The number of characters before the insertion to include in the REF field of the new VCF file
+INSERT_AFTER=0 # The number of characters after the insertion to include in the REF field of the new VCF file
+
 if [ $USER == "mschatz1@jhu.edu" ]
 then
 BLASR=/work-zfs/mschatz1/mschatz/build/miniconda/bin/blasr
@@ -55,7 +58,8 @@ java -cp "${BINDIR}" ReadFinder $WORKINGDIR/"${vcfFile}" $OUTDIR/inserts
 #done
 parallel --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaFile ::: $OUTDIR/inserts/*.txt.*
 wait
-cat $OUTDIR/seqs/* > $OUTDIR/all.seq
-java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $WORKINGDIR/$vcfFile $WORKINGDIR/$outputFile
+cat $OUTDIR/seqs/*.fa > $OUTDIR/all.seq
+cat $OUTDIR/seqs/*.pos > $OUTDIR/all.pos
+java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $OUTDIR/all.pos $WORKINGDIR/$vcfFile $WORKINGDIR/$fastaFile $WORKINGDIR/$outputFile $INSERT_BEFORE $INSERT_AFTER
 
 rm $WORKINGDIR/hs*.log

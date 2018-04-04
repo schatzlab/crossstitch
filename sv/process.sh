@@ -41,21 +41,23 @@ mv $OUTDIR/falconsense_output/$x.correctedReads.insertions.fixed.fasta $OUTDIR/f
 
 offset=100000
 left=$(($x - $offset))
-if [ "$left" -lt 0 ]
+if [ "$left" -lt 1 ]
 then
-    left=0
+    left=1
 fi
 samtools faidx $fastaFile $c:$left-$(($x + $offset)) > $OUTDIR/samples/"$x".fa
 
 touch $OUTDIR/seqs/$x.fa
 echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.fa
+echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.pos
 
 ngmlr -t 4 -r $OUTDIR/samples/"$x".fa -q $OUTDIR/falconsense_output/"$x".correctedReads.fasta -o $OUTDIR/results/"$x"_all.sam
 ngmlr -t 4 -r $OUTDIR/samples/"$x".fa -q $OUTDIR/falconsense_output/"$x".correctedReads.insertions.fasta -o $OUTDIR/results/"$x"_all_insertions.sam
 
-insert=''
-oldinsert=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all.sam $x $offset`
-insert=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all_insertions.sam $x $offset`
+oldinsert=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all.sam $x $offset 'SEQ'`
+insert=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all_insertions.sam $x $offset 'SEQ'`
+oldpos=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all.sam $x $offset 'POS'`
+pos=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all_insertions.sam $x $offset 'POS'`
 
 echo $x >> $OUTDIR/a.txt
 echo 'insert: '$insert >> $OUTDIR/a.txt
@@ -63,8 +65,10 @@ echo 'oldinsert: '$oldinsert >> $OUTDIR/a.txt
 if [ "$insert" != '' ]
 then
     echo $insert >> $OUTDIR/seqs/$x.fa
+    echo $pos >> $OUTDIR/seqs/$x.pos
 else
     echo $oldinsert >> $OUTDIR/seqs/$x.fa
+    echo $oldpos >> $OUTDIR/seqs/$x.pos
 fi
 
 rm $OUTDIR/samples/"$x".*

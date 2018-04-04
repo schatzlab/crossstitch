@@ -6,11 +6,11 @@
 #set -xv
 set -e
 
-VCF2DIPLOID=/home-3/mkirsche@jhu.edu/build/vcf2diploid/vcf2diploid.jar
-SNIFFLES=/home-3/mkirsche@jhu.edu/bin/sniffles
-SURVIVOR=/home-3/mkirsche@jhu.edu/bin/SURVIVOR
+VCF2DIPLOID=/home/mkirsche/build/vcf2diploid/vcf2diploid.jar
+SNIFFLES=/home/mkirsche/bin/sniffles
+SURVIVOR=/home/mkirsche/bin/SURVIVOR
 SURVIVORLRSIM=SURVIVOR-LRSIM
-FGBIO=/home-3/mkirsche@jhu.edu/build/fgbio/target/scala-2.12/fgbio-0.4.0-SNAPSHOT.jar
+FGBIO=/home/mkirsche/build/fgbio/target/scala-2.12/fgbio-0.4.0-SNAPSHOT.jar
 if [ $USER = "mschatz1@jhu.edu" ]
 then
 VCF2DIPLOID=/work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar

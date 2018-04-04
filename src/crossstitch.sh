@@ -5,7 +5,16 @@ set -e
 
 if [ $# -ne 7 ]
 then
-  echo "USAGE: phase_svs.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix gender refine"
+  echo "USAGE: crossstich.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix gender refine"
+  echo ""
+  echo "Details:"
+  echo "  phased_snps.vcf:                   VCF file of phased SNP and indel variants. Recommend LongRanger (10X only) or HapCUT2 (HiC and/or 10X)"
+  echo "  unphased_structural_variants.vcf:  VCF file of structural variants identified using Sniffles"
+  echo "  long_reads.bam:                    BAM file of long reads aligned with NGMLR"
+  echo "  genome.fa:                         Reference genome used"
+  echo "  outputprefix:                      Prefix for output files"
+  echo "  gender:                            "male" or "female", used to ensure sex chromosomes are correctly used"
+  echo "  refine:                            optionally refine structural variant calls with local assembly (1=refine, 0=skip)"
   exit
 fi
 
@@ -22,7 +31,7 @@ VCF2DIPLOIDJAR=$BINDIR/../vcf2diploid/vcf2diploid.jar
 EXTRACTHAIRS=extractHAIRS
 GZIP=pigz
 
-echo "phase_svs.sh"
+echo "crossstich.sh"
 echo "  BINDIR: $BINDIR"
 echo "  PHASEDSNPS: $PHASEDSNPS"
 echo "  STRUCTURALVARIANTS: $STRUCTURALVARIANTS"
@@ -39,7 +48,7 @@ echo
 
 if [[ $GENDER != "male" && $GENDER != "female" ]]
 then
-  echo "Unknown gender: $GENDER"
+  echo "Unknown gender: $GENDER (must be male or female)"
   exit
 fi
 
