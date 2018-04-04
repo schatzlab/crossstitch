@@ -1,4 +1,4 @@
-import java.util.*;
+mport java.util.*;
 import java.io.*;
 public class VCFEditor {
 public static void main(String[] args) throws IOException
@@ -17,14 +17,8 @@ public static void main(String[] args) throws IOException
 	String find = "<INS>";
 	while(readsInput.hasNext())
 	{
-		String nextLine = readsInput.nextLine();
-		while(readsInput.hasNext() && nextLine.charAt(0) != '>')
-			nextLine = readsInput.nextLine();
-		String id = nextLine.substring(1);
-		
+		String id = readsInput.nextLine().substring(1);
 		String seq = readsInput.nextLine();
-		//System.out.println(id+" "+seq);
-		//if(id.charAt(0) != 'i') return;
 		readMap.put(id.substring(id.indexOf('_')+1), seq);
 	}
 	HashMap<String, Integer> posMap = new HashMap<String, Integer>();
