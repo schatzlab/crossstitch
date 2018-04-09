@@ -1,4 +1,4 @@
-mport java.util.*;
+import java.util.*;
 import java.io.*;
 public class VCFEditor {
 public static void main(String[] args) throws IOException
