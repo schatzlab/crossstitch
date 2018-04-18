@@ -17,6 +17,7 @@ mkdir $OUTDIR/inserts
 mkdir $OUTDIR/results
 mkdir $OUTDIR/seqs
 mkdir $OUTDIR/samples
+mkdir $OUTDIR/cert
 
 usage() { echo "Usage: $0 -v <vcfFile> -b <bamFile> -f <fastaFile> -o <outputFile>" 1>&2; exit 1; }
 
@@ -63,3 +64,5 @@ cat $OUTDIR/seqs/*.pos > $OUTDIR/all.pos
 java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $OUTDIR/all.pos $WORKINGDIR/$vcfFile $WORKINGDIR/$fastaFile $WORKINGDIR/$outputFile $INSERT_BEFORE $INSERT_AFTER
 
 rm $WORKINGDIR/hs*.log
+
+"${BINDIR}"/clean.sh 
