@@ -65,4 +65,4 @@ java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $OUTDIR/all.pos $WORKINGDIR/$vcfF
 
 rm $WORKINGDIR/hs*.log
 
-"${BINDIR}"/clean.sh 
+"${BINDIR}"/clean.sh $BINDIR $OUTDIR $bamFile $fastaFile
