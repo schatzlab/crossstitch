@@ -58,6 +58,7 @@ java -cp "${BINDIR}" ReadFinder $WORKINGDIR/"${vcfFile}" $OUTDIR/inserts
 #    "${BINDIR}"/process.sh $y $BINDIR $OUTDIR $bamFile $fastaFile
 #done
 parallel --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaFile ::: $OUTDIR/inserts/*.txt.*
+
 wait
 
 "${BINDIR}"/clean.sh $BINDIR $OUTDIR $bamFile $fataFile
