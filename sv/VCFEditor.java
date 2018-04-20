@@ -104,7 +104,8 @@ public static void main(String[] args) throws IOException
 		StringTokenizer str = new StringTokenizer(output);
 		int tokenIdx = 0;
 		String command = "samtools faidx " + fastaFn + " " + ch + ":" + (svPos-left+1) + "-" + (svPos+right);
-		Process child = Runtime.getRuntime().exec(command);
+	System.out.println(command);
+	Process child = Runtime.getRuntime().exec(command);
         InputStream seqStream = child.getInputStream();
         Scanner seqInput = new Scanner(seqStream);
         seqInput.next();

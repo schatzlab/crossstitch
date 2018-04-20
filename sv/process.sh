@@ -3,6 +3,7 @@ BINDIR=$2
 OUTDIR=$3
 bamFile=$4
 fastaFile=$5
+echo 'flagsflags: ' $1 ' ' $2 ' ' $3 ' ' $4 ' ' $5
 numReads=`wc -l < $y`
 l=${#y}
 ol=${#OUTDIR}
@@ -10,7 +11,7 @@ c="${y#*.}"
 c="${c#*.}"
 x=${y:ol+9:l-4-ol-9-${#c}-1}
 echo 'Processing insertion '$x
-touch $OUTDIR/cert/$fastaFile'.cert'
+touch $OUTDIR/cert/$x'.txt.'$c'.cert'
 # Produce a fastq file of the reads
 echo $x
 samtools view $bamFile  $c:$(($x - 10000))-$(($x + 10000)) | grep -w -f $OUTDIR/inserts/$x.txt.$c > $OUTDIR/inserts/extracted_$x.sam
@@ -48,7 +49,6 @@ then
 fi
 samtools faidx $fastaFile $c:$left-$(($x + $offset)) > $OUTDIR/samples/"$x".fa
 
-touch $OUTDIR/seqs/$fastaFile.done
 echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.fa
 echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.pos
 
@@ -73,4 +73,4 @@ else
 fi
 
 rm $OUTDIR/samples/"$x".*
-touch $OUTDIR/cert/$x'.cert.done'
+touch $OUTDIR/cert/$x'.txt.'$c'.cert.done'
