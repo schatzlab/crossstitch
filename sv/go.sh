@@ -5,7 +5,7 @@ OUTDIR=$WORKINGDIR/testout2
 echo $WORKINGDIR
 echo $BINDIR
 echo $OUTDIR
-rm $BINDIR/*.class
+#rm $BINDIR/*.class
 rm -r $OUTDIR/*
 rm -r $OUTDIR
 
@@ -31,7 +31,7 @@ do
     o) outputFile=$OPTARG;;
  esac
 done
-
+echo $fastaFile
 if [ -z "${vcfFile}" ] || [ -z "${bamFile}" ] || [ -z "${fastaFile}" ] || [ -z "${outputFile}" ]; then
     usage
 fi
@@ -49,7 +49,7 @@ PYTHON=python2
 fi
 
 
-javac $BINDIR/*.java
+#javac $BINDIR/*.java
 # Generate lists of reads for all inserts
 java -cp "${BINDIR}" ReadFinder $WORKINGDIR/"${vcfFile}" $OUTDIR/inserts
 

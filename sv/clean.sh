@@ -9,7 +9,7 @@ for filename in `ls $OUTDIR/cert/*.cert`; do
             nfilename=${nfilename::${#nfilename}-5}
 	    echo 'nnnnnnnnnnnnnnnnn'$nfilename
 		echo 'oooooooooooo'$OUTDIR
-            "${BINDIR}"/process.sh $OUTDIR'/inserts/'$nfilename $BINDIR $OUTDIR $bamFile $fastaFile
+            timeout 2m "${BINDIR}"/process.sh $OUTDIR'/inserts/'$nfilename $BINDIR $OUTDIR $bamFile $fastaFile
         fi
     done
 done
