@@ -54,7 +54,7 @@ echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.pos
 
 ngmlr -t 4 -r $OUTDIR/samples/"$x".fa -q $OUTDIR/falconsense_output/"$x".correctedReads.fasta -o $OUTDIR/results/"$x"_all.sam
 ngmlr -t 4 -r $OUTDIR/samples/"$x".fa -q $OUTDIR/falconsense_output/"$x".correctedReads.insertions.fasta -o $OUTDIR/results/"$x"_all_insertions.sam
-
+echo 'aligned reads'
 oldinsert=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all.sam $x $offset 'SEQ'`
 insert=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all_insertions.sam $x $offset 'SEQ'`
 oldpos=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all.sam $x $offset 'POS'`

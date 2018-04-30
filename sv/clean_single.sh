@@ -3,6 +3,7 @@ OUTDIR=$2
 bamFile=$3
 fastaFile=$4
 filename=$5
+echo 'fnfnfn: '$filename
 for ((i=0; i<=3; i++)); do
     if [ ! -f $filename'.done' ]; then
         nfilename="${filename##*/}"

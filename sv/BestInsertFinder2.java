@@ -59,7 +59,7 @@ public static void main(String[] args) throws IOException
 			{
 				if(score(refIdx, middle, len) > bestScore && len >= minLength && Math.abs(refIdx - middle) <= maxDist)
 				{
-				    bestPos = refIdx;
+				    bestPos = refIdx-middle+pos;
 					bestScore = score(refIdx, middle, len);
 					insertSeq = seq.substring(idx, idx+len);
 					bestTig = tigName;
