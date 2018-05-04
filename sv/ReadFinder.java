@@ -13,12 +13,14 @@ public static void main(String[] args) throws IOException
 	BufferedReader vcfScanner = new BufferedReader(new InputStreamReader(new FileInputStream(new File(vcfFn))));
 	String find = "<INS>";
 	String line = "";
+	int numInsertions = 0, supportedVariants = 0;
 	while(true)
 	{
 		line = vcfScanner.readLine();
 		if(line == null) break;
 		if(line.contains(find))
 		{
+		    numInsertions++;
 			String[] tokens = line.split("\t");
 			int index = 0;
 			int curPos = -1;
@@ -29,6 +31,7 @@ public static void main(String[] args) throws IOException
 			{
 				if(t.startsWith("RNAMES="))
 				{
+				    supportedVariants++;
 				    TreeSet<String> readList = new TreeSet<String>();
 					String list = t.substring(7);
 					StringTokenizer str = new StringTokenizer(list, ",");
@@ -41,5 +44,7 @@ public static void main(String[] args) throws IOException
 			}
 		}
 	}
+	System.out.println("Number of insertions found: " + numInsertions);
+	System.out.println("Number of insertions with supporting reads found: " + supportedVariants);
 }
 }
