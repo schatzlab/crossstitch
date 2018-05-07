@@ -106,7 +106,7 @@ public static void main(String[] args) throws IOException
 		String seq = "X";
 		if(svPos != null && svPos != -1)
 		{
-			String command = "samtools faidx " + fastaFn + " " + ch + ":" + (svPos-left+1) + "-" + (svPos+right);
+			String command = "samtools faidx " + fastaFn + " " + ch + ":" + Math.max(1, (svPos-left+1)) + "-" + (svPos+right);
 			System.out.println(command);
 			Process child = Runtime.getRuntime().exec(command);
         		InputStream seqStream = child.getInputStream();
