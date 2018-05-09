@@ -76,6 +76,4 @@ cat $OUTDIR/seqs/*.fa > $OUTDIR/all.seq
 cat $OUTDIR/seqs/*.pos > $OUTDIR/all.pos
 java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $OUTDIR/all.pos $vcfPath $fastaPath $WORKINGDIR/$outputFile $INSERT_BEFORE $INSERT_AFTER
 
-rm $WORKINGDIR/hs*.log
-
 
