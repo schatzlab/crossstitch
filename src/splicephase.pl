@@ -94,7 +94,7 @@ while (<PHASEDVCF>)
   {
     $vcfdatalines++;
 
-    my ($chrom, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = split /\s+/, $_; 
+    my ($chrom, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = split /\s+/, $_;
     my $v;
     $v->{chrom}  = $chrom;
     $v->{pos}    = $pos;
@@ -136,6 +136,14 @@ while (<SNIFFLESVCF>)
   {
     chomp;
     my ($chrom, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = split /\s+/, $_; 
+    if (index($info, "SVTYPE=INS") >= 0)
+    {
+      $alt = "<INS>";
+    }
+    if (index($info, "SVTYPE=DEL") >= 0)
+    {
+      $alt = "<DEL>";
+    }
     my $v;
     $v->{chrom}  = $chrom;
     $v->{pos}    = $pos;
