@@ -184,6 +184,14 @@ while (<>)
     }
     else
     {
+      if (index($info, "SVTYPE=INS") >= 0)
+      {
+        $alt = "<INS>";
+      }
+      if (index($info, "SVTYPE=DEL") >= 0)
+      {
+        $alt = "<DEL>";
+      }
       if (exists $chrom{$chr} && exists $types{$alt})
       {
         $reported++;
