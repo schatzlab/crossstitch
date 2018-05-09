@@ -36,6 +36,16 @@ if [ -z "${vcfFile}" ] || [ -z "${bamFile}" ] || [ -z "${fastaFile}" ] || [ -z "
     usage
 fi
 
+vcfPath=$WORKINGDIR/$vcfFile
+if [[ $vcfFile == /* ]]; then
+    vcfPath=$vcfFile
+fi
+
+fastaPath=$WORKINGDIR/$fastaFile
+if [[ $fastaFile == /* ]]; then
+    fastaPath=$fastaFile
+fi
+
 BLASR=/home-3/mkirsche\@jhu.edu/scratch/miniconda3/envs/blasr/bin/blasr
 PYTHON=python
 
@@ -51,20 +61,20 @@ fi
 
 #javac $BINDIR/*.java
 # Generate lists of reads for all inserts
-java -cp "${BINDIR}" ReadFinder $WORKINGDIR/"${vcfFile}" $OUTDIR/inserts
+java -cp "${BINDIR}" ReadFinder $vcfPath $OUTDIR/inserts
 
 #for y in `ls $OUTDIR/inserts/*.txt.*`
 #do
 #    "${BINDIR}"/process.sh $y $BINDIR $OUTDIR $bamFile $fastaFile
 #done
-parallel --timeout 500 --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaFile ::: $OUTDIR/inserts/*.txt.*
+parallel --timeout 500 --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaPath ::: $OUTDIR/inserts/*.txt.*
 
 wait
 
 "${BINDIR}"/clean_parallel.sh $BINDIR $OUTDIR $bamFile $fastaFile
 cat $OUTDIR/seqs/*.fa > $OUTDIR/all.seq
 cat $OUTDIR/seqs/*.pos > $OUTDIR/all.pos
-java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $OUTDIR/all.pos $WORKINGDIR/$vcfFile $WORKINGDIR/$fastaFile $WORKINGDIR/$outputFile $INSERT_BEFORE $INSERT_AFTER
+java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $OUTDIR/all.pos $vcfPath $fastaPath $WORKINGDIR/$outputFile $INSERT_BEFORE $INSERT_AFTER
 
 rm $WORKINGDIR/hs*.log
 
