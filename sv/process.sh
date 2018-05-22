@@ -14,32 +14,32 @@ echo 'Processing insertion '$x
 touch $OUTDIR/cert/$x'.txt.'$c'.cert'
 # Produce a fastq file of the reads
 echo $x
-samtools view $bamFile  $c:$(($x - 10000))-$(($x + 10000)) | grep -w -f $OUTDIR/inserts/$x.txt.$c > $OUTDIR/inserts/extracted_$x.sam
-java -cp "${BINDIR}" ReadInsertExtraction $OUTDIR/inserts/extracted_$x.sam $x > $OUTDIR/inserts/extracted_$x.fa
-samtools view -H $bamFile > $OUTDIR/inserts/mine_$x.bam
-cat $OUTDIR/inserts/extracted_$x.sam >> $OUTDIR/inserts/mine_$x.bam
-samtools bam2fq $OUTDIR/inserts/mine_$x.bam > $OUTDIR/inserts/extracted2_$x.fa
+samtools view $bamFile  $c:$(($x - 10000))-$(($x + 10000)) | grep -w -f $OUTDIR/inserts/$x.txt.$c > $OUTDIR/inserts/extracted_$x.sam.$c
+java -cp "${BINDIR}" ReadInsertExtraction $OUTDIR/inserts/extracted_$x.sam.$c $x > $OUTDIR/inserts/extracted_$x.fa.$c
+samtools view -H $bamFile > $OUTDIR/inserts/mine_$x.bam.$c
+cat $OUTDIR/inserts/extracted_$x.sam.$c >> $OUTDIR/inserts/mine_$x.bam.$c
+samtools bam2fq $OUTDIR/inserts/mine_$x.bam.$c > $OUTDIR/inserts/extracted2_$x.fa.$c
 
 # Convert from fastq to fasta format
-java -cp "${BINDIR}" FastaFileFixer $OUTDIR/inserts/extracted2_$x.fa $OUTDIR/inserts/fixed_$x.fa
-mv $OUTDIR/inserts/fixed_$x.fa $OUTDIR/inserts/extracted2_$x.fa
+java -cp "${BINDIR}" FastaFileFixer $OUTDIR/inserts/extracted2_$x.fa.$c $OUTDIR/inserts/fixed_$x.fa.$c
+mv $OUTDIR/inserts/fixed_$x.fa.$c $OUTDIR/inserts/extracted2_$x.fa.$c
 #java -cp "${BINDIR}" FastaFileFixer $OUTDIR/inserts/extracted_$x.fa $OUTDIR/inserts/insertions_fixed_$x.fa
 #mv $OUTDIR/inserts/insertions_fixed_$x.fa $OUTDIR/inserts/extracted_$x.fa
 
 # Put the reads in a format readable by FalconSense
-java -cp "${BINDIR}" FalconFormatter $OUTDIR/inserts/extracted2_$x.fa $OUTDIR/inserts/extracted_falcon_$x.fa
-java -cp "${BINDIR}" FalconFormatter $OUTDIR/inserts/extracted_$x.fa $OUTDIR/inserts/insertions_extracted_falcon_$x.fa
+java -cp "${BINDIR}" FalconFormatter $OUTDIR/inserts/extracted2_$x.fa.$c $OUTDIR/inserts/extracted_falcon_$x.fa.$c
+java -cp "${BINDIR}" FalconFormatter $OUTDIR/inserts/extracted_$x.fa.$c $OUTDIR/inserts/insertions_extracted_falcon_$x.fa.$c
 
 # Run Falconsense using default parameters
 quarterReads=`expr $numReads / 8`
-$BINDIR/falcon_sense --min_idt 0.7 --min_len 500 --max_read_len 40896 --min_ovl_len 250 --min_cov $quarterReads --n_core 2 > $OUTDIR/falconsense_output/$x.correctedReads.fasta < $OUTDIR/inserts/extracted_falcon_$x.fa
-$BINDIR/falcon_sense --min_idt 0.7 --min_len 500 --max_read_len 40896 --min_ovl_len 250 --min_cov 2 --n_core 2 > $OUTDIR/falconsense_output/$x.correctedReads.insertions.fasta < $OUTDIR/inserts/insertions_extracted_falcon_$x.fa
+$BINDIR/falcon_sense --min_idt 0.7 --min_len 500 --max_read_len 40896 --min_ovl_len 250 --min_cov $quarterReads --n_core 2 > $OUTDIR/falconsense_output/$x.correctedReads.fasta.$c < $OUTDIR/inserts/extracted_falcon_$x.fa.$c
+$BINDIR/falcon_sense --min_idt 0.7 --min_len 500 --max_read_len 40896 --min_ovl_len 250 --min_cov 2 --n_core 2 > $OUTDIR/falconsense_output/$x.correctedReads.insertions.fasta.$c < $OUTDIR/inserts/insertions_extracted_falcon_$x.fa.$c
 
 # Reformat the file to have the entire sequences on one line for downstream processing
-java -cp "${BINDIR}" FastaFileFixer2 $OUTDIR/falconsense_output/$x.correctedReads.fasta $OUTDIR/falconsense_output/$x.correctedReads.fixed.fasta
-mv $OUTDIR/falconsense_output/$x.correctedReads.fixed.fasta $OUTDIR/falconsense_output/$x.correctedReads.fasta
-java -cp "${BINDIR}" FastaFileFixer2 $OUTDIR/falconsense_output/$x.correctedReads.insertions.fasta $OUTDIR/falconsense_output/$x.correctedReads.insertions.fixed.fasta
-mv $OUTDIR/falconsense_output/$x.correctedReads.insertions.fixed.fasta $OUTDIR/falconsense_output/$x.correctedReads.insertions.fasta
+java -cp "${BINDIR}" FastaFileFixer2 $OUTDIR/falconsense_output/$x.correctedReads.fasta.$c $OUTDIR/falconsense_output/$x.correctedReads.fixed.fasta.$c
+mv $OUTDIR/falconsense_output/$x.correctedReads.fixed.fasta.$c $OUTDIR/falconsense_output/$x.correctedReads.fasta.$c
+java -cp "${BINDIR}" FastaFileFixer2 $OUTDIR/falconsense_output/$x.correctedReads.insertions.fasta.$c $OUTDIR/falconsense_output/$x.correctedReads.insertions.fixed.fasta.$c
+mv $OUTDIR/falconsense_output/$x.correctedReads.insertions.fixed.fasta.$c $OUTDIR/falconsense_output/$x.correctedReads.insertions.fasta.$c
 
 offset=100000
 left=$(($x - $offset))
@@ -47,29 +47,29 @@ if [ "$left" -lt 1 ]
 then
     left=1
 fi
-samtools faidx $fastaFile $c:$left-$(($x + $offset)) > $OUTDIR/samples/"$x".fa
+samtools faidx $fastaFile $c:$left-$(($x + $offset)) > $OUTDIR/samples/"$x".fa.$c
 
-echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.fa
-echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.pos
+echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.$c.fa
+echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.$c.pos
 
-ngmlr -t 4 -r $OUTDIR/samples/"$x".fa -q $OUTDIR/falconsense_output/"$x".correctedReads.fasta -o $OUTDIR/results/"$x"_all.sam
-ngmlr -t 4 -r $OUTDIR/samples/"$x".fa -q $OUTDIR/falconsense_output/"$x".correctedReads.insertions.fasta -o $OUTDIR/results/"$x"_all_insertions.sam
+ngmlr -t 4 -r $OUTDIR/samples/"$x".fa.$c -q $OUTDIR/falconsense_output/"$x".correctedReads.fasta.$c -o $OUTDIR/results/"$x"_all.sam.$c
+ngmlr -t 4 -r $OUTDIR/samples/"$x".fa.$c -q $OUTDIR/falconsense_output/"$x".correctedReads.insertions.fasta.$c -o $OUTDIR/results/"$x"_all_insertions.sam.$c
 echo 'aligned reads'
-oldinsert=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all.sam $x $offset 'SEQ'`
-insert=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all_insertions.sam $x $offset 'SEQ'`
-oldpos=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all.sam $x $offset 'POS'`
-pos=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all_insertions.sam $x $offset 'POS'`
+oldinsert=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all.sam.$c $x $offset 'SEQ'`
+insert=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all_insertions.sam.$c $x $offset 'SEQ'`
+oldpos=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all.sam.$c $x $offset 'POS'`
+pos=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all_insertions.sam.$c $x $offset 'POS'`
 
 echo $x >> $OUTDIR/a.txt
 echo 'insert: '$insert >> $OUTDIR/a.txt
 echo 'oldinsert: '$oldinsert >> $OUTDIR/a.txt
 if [ "$insert" != '' ]
 then
-    echo $insert >> $OUTDIR/seqs/$x.fa
-    echo $pos >> $OUTDIR/seqs/$x.pos
+    echo $insert >> $OUTDIR/seqs/$x.$c.fa
+    echo $pos >> $OUTDIR/seqs/$x.$c.pos
 else
-    echo $oldinsert >> $OUTDIR/seqs/$x.fa
-    echo $oldpos >> $OUTDIR/seqs/$x.pos
+    echo $oldinsert >> $OUTDIR/seqs/$x.$c.fa
+    echo $oldpos >> $OUTDIR/seqs/$x.$c.pos
 fi
 
 rm $OUTDIR/samples/"$x".*

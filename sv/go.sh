@@ -1,13 +1,14 @@
 BINDIR=`dirname $(readlink -f "$0")`
 WORKINGDIR=`pwd`
-mkdir $WORKINGDIR/testout3
-OUTDIR=$WORKINGDIR/testout3
+mkdir $WORKINGDIR/csout
+OUTDIR=$WORKINGDIR/csout
 echo $WORKINGDIR
 echo $BINDIR
 echo $OUTDIR
 #rm $BINDIR/*.class
 rm -r $OUTDIR/*
 rm -r $OUTDIR
+export _JAVA_OPTIONS="-XX:ParallelGCThreads=16"
 javac $BINDIR/*.java
 mkdir $OUTDIR
 mkdir $OUTDIR/alignments
