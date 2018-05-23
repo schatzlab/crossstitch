@@ -7,8 +7,7 @@ for filename in `ls $OUTDIR/cert/*.cert`; do
         if [ ! -f $filename'.done' ]; then
             nfilename="${filename##*/}"
             nfilename=${nfilename::${#nfilename}-5}
-	    echo 'nnnnnnnnnnnnnnnnn'$nfilename
-		echo 'oooooooooooo'$OUTDIR
+	        echo 'Rerunning (serial): '$nfilename
             timeout 2m "${BINDIR}"/process.sh $OUTDIR'/inserts/'$nfilename $BINDIR $OUTDIR $bamFile $fastaFile
         fi
     done

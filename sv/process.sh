@@ -10,10 +10,12 @@ ol=${#OUTDIR}
 c="${y#*.}"
 c="${c#*.}"
 x=${y:ol+9:l-4-ol-9-${#c}-1}
-echo 'Processing insertion '$x
+echo 'Processing insertion '$c:$x
+
+# Produce an empty file to indicate this insertion has started being processed
 touch $OUTDIR/cert/$x'.txt.'$c'.cert'
-# Produce a fastq file of the reads
-echo $x
+
+# Produce a fastq file of the reads supporting this insertion
 samtools view $bamFile  $c:$(($x - 10000))-$(($x + 10000)) | grep -w -f $OUTDIR/inserts/$x.txt.$c > $OUTDIR/inserts/extracted_$x.sam.$c
 java -cp "${BINDIR}" ReadInsertExtraction $OUTDIR/inserts/extracted_$x.sam.$c $x > $OUTDIR/inserts/extracted_$x.fa.$c
 samtools view -H $bamFile > $OUTDIR/inserts/mine_$x.bam.$c
@@ -23,8 +25,6 @@ samtools bam2fq $OUTDIR/inserts/mine_$x.bam.$c > $OUTDIR/inserts/extracted2_$x.f
 # Convert from fastq to fasta format
 java -cp "${BINDIR}" FastaFileFixer $OUTDIR/inserts/extracted2_$x.fa.$c $OUTDIR/inserts/fixed_$x.fa.$c
 mv $OUTDIR/inserts/fixed_$x.fa.$c $OUTDIR/inserts/extracted2_$x.fa.$c
-#java -cp "${BINDIR}" FastaFileFixer $OUTDIR/inserts/extracted_$x.fa $OUTDIR/inserts/insertions_fixed_$x.fa
-#mv $OUTDIR/inserts/insertions_fixed_$x.fa $OUTDIR/inserts/extracted_$x.fa
 
 # Put the reads in a format readable by FalconSense
 java -cp "${BINDIR}" FalconFormatter $OUTDIR/inserts/extracted2_$x.fa.$c $OUTDIR/inserts/extracted_falcon_$x.fa.$c
@@ -73,4 +73,6 @@ else
 fi
 
 rm $OUTDIR/samples/"$x".*
+
+# Produce a file to indicate this insertion has finished being processed
 touch $OUTDIR/cert/$x'.txt.'$c'.cert.done'

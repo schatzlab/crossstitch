@@ -5,7 +5,6 @@ OUTDIR=$WORKINGDIR/csout
 echo $WORKINGDIR
 echo $BINDIR
 echo $OUTDIR
-#rm $BINDIR/*.class
 rm -r $OUTDIR/*
 rm -r $OUTDIR
 export _JAVA_OPTIONS="-XX:ParallelGCThreads=16"
@@ -50,14 +49,10 @@ fi
 INSERT_BEFORE=1 # The number of characters before the insertion to include in the REF field of the new VCF file
 INSERT_AFTER=0 # The number of characters after the insertion to include in the REF field of the new VCF file
 
-#javac $BINDIR/*.java
-# Generate lists of reads for all inserts
+# Generate lists of reads for all insertions
 java -cp "${BINDIR}" ReadFinder $vcfPath $OUTDIR/inserts
 
-#for y in `ls $OUTDIR/inserts/*.txt.*`
-#do
-#    "${BINDIR}"/process.sh $y $BINDIR $OUTDIR $bamFile $fastaFile
-#done
+# Process all insertions in parallel
 parallel --timeout 500 --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaPath ::: $OUTDIR/inserts/*.txt.*
 
 wait
