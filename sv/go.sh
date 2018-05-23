@@ -47,18 +47,8 @@ if [[ $fastaFile == /* ]]; then
     fastaPath=$fastaFile
 fi
 
-BLASR=/home-3/mkirsche\@jhu.edu/scratch/miniconda3/envs/blasr/bin/blasr
-PYTHON=python
-
 INSERT_BEFORE=1 # The number of characters before the insertion to include in the REF field of the new VCF file
 INSERT_AFTER=0 # The number of characters after the insertion to include in the REF field of the new VCF file
-
-if [ $USER == "mschatz1@jhu.edu" ]
-then
-BLASR=/work-zfs/mschatz1/mschatz/build/miniconda/bin/blasr
-PYTHON=python2
-fi
-
 
 #javac $BINDIR/*.java
 # Generate lists of reads for all inserts
