@@ -92,7 +92,13 @@ public static void main(String[] args) throws IOException
                 else
                 {
                     int start = curPos;
-                    int end = start + Integer.parseInt(getField(line, "SVLEN"));
+                    int svlen = Integer.parseInt(getField(line, "SVLEN"));
+                    if(svlen > 100000)
+                    {
+                        out.println(line);
+                        continue;
+                    }
+                    int end = start + svlen;
                     if(verbose) System.out.println("deletion length: " + Integer.parseInt(getField(line, "SVLEN")));
                     String command = "samtools faidx " + fastaFn + " " + ch + ":" + (start) + "-" + (end-1);
                     if(verbose) System.out.println("deletion: " + command);
