@@ -1,6 +1,7 @@
 import java.util.*;
 import java.io.*;
 public class VCFEditor {
+static boolean verbose = false;
 public static void main(String[] args) throws IOException
 {
     String readFn = args[0], posFn = args[1], vcfFn = args[2];
@@ -15,22 +16,64 @@ public static void main(String[] args) throws IOException
     PrintWriter logout = new PrintWriter(new File(vcfFn+".log"));
     HashMap<String, String> readMap = new HashMap<String, String>();
     String find = "<INS>";
+    String id = "";
+    if(readsInput.hasNext())
+    {
+        id = readsInput.nextLine().substring(1);
+    }
     while(readsInput.hasNext())
     {
-        String id = readsInput.nextLine().substring(1);
         String seq = readsInput.nextLine();
+        if(seq.length() > 0 && seq.charAt(0) == '>')
+        {
+            // No line was output for this entry, so save as next id and skip it
+            id = seq.substring(1);
+            continue;
+        }
         readMap.put(id.substring(id.indexOf('_')+1), seq);
+        while(readsInput.hasNext())
+        {
+            String cur = readsInput.nextLine();
+            if(cur.length() == 0 || cur.charAt(0) != '>') continue;
+            id = cur.substring(1);
+            break;
+        }
     }
+    if(verbose) System.out.println("Finished reading " + readMap.size() + " sequences");
     HashMap<String, Integer> posMap = new HashMap<String, Integer>();
+    if(posInput.hasNext())
+    {
+        id = posInput.nextLine().substring(1);
+    }
     while(posInput.hasNext())
     {
-        String id = posInput.nextLine().substring(1);
-        int p = Integer.parseInt(posInput.nextLine());
+        String posString = posInput.nextLine();
+        if(posString.length() > 0 && posString.charAt(0) == '>')
+        {
+            // No line was output for this entry, so save as next id and skip it
+            id = posString.substring(1);
+            continue;
+        }
+        int p = Integer.parseInt(posString);
         posMap.put(id.substring(id.indexOf('_')+1), p);
+        while(posInput.hasNext())
+        {
+            String cur = posInput.nextLine();
+            if(cur.length() == 0 || cur.charAt(0) != '>') continue;
+            id = cur.substring(1);
+            break;
+        }
     }
+    int lineNum = 0;
+    if(verbose) System.out.println("Finished reading " + posMap.size() + " positions");
     while(vcfScanner.hasNext())
     {
         String line = vcfScanner.nextLine();
+        lineNum++;
+        if(lineNum%1000 == 0)
+        {
+            System.out.println("Processed " + lineNum + " lines");
+        }
         if(line.charAt(0) == '#')
         {
             out.println(line);
@@ -50,7 +93,9 @@ public static void main(String[] args) throws IOException
                 {
                     int start = curPos;
                     int end = start + Integer.parseInt(getField(line, "SVLEN"));
+                    if(verbose) System.out.println("deletion length: " + Integer.parseInt(getField(line, "SVLEN")));
                     String command = "samtools faidx " + fastaFn + " " + ch + ":" + (start) + "-" + (end-1);
+                    if(verbose) System.out.println("deletion: " + command);
                     Process child = Runtime.getRuntime().exec(command);
                     InputStream seqStream = child.getInputStream();
                     Scanner seqInput = new Scanner(seqStream);
@@ -107,12 +152,12 @@ public static void main(String[] args) throws IOException
         if(svPos != null && svPos != -1)
         {
             String command = "samtools faidx " + fastaFn + " " + ch + ":" + Math.max(1, (svPos-left+1)) + "-" + (svPos+right);
-            System.out.println(command);
+            if(verbose) System.out.println("insertion: " + command);
             Process child = Runtime.getRuntime().exec(command);
-                InputStream seqStream = child.getInputStream();
-                Scanner seqInput = new Scanner(seqStream);
-                seqInput.next();
-                seq = seqInput.next();
+            InputStream seqStream = child.getInputStream();
+            Scanner seqInput = new Scanner(seqStream);
+            seqInput.next();
+            seq = seqInput.next();
         }
         while(str.hasMoreTokens())
         {

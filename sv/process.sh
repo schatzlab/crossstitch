@@ -49,9 +49,6 @@ then
 fi
 samtools faidx $fastaFile $c:$left-$(($x + $offset)) > $OUTDIR/samples/"$x".fa.$c
 
-echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.$c.fa
-echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.$c.pos
-
 ngmlr -t 4 -r $OUTDIR/samples/"$x".fa.$c -q $OUTDIR/falconsense_output/"$x".correctedReads.fasta.$c -o $OUTDIR/results/"$x"_all.sam.$c
 ngmlr -t 4 -r $OUTDIR/samples/"$x".fa.$c -q $OUTDIR/falconsense_output/"$x".correctedReads.insertions.fasta.$c -o $OUTDIR/results/"$x"_all_insertions.sam.$c
 echo 'aligned reads'
@@ -63,6 +60,9 @@ pos=`java -cp "${BINDIR}" BestInsertFinder2 $OUTDIR/results/"$x"_all_insertions.
 echo $x >> $OUTDIR/a.txt
 echo 'insert: '$insert >> $OUTDIR/a.txt
 echo 'oldinsert: '$oldinsert >> $OUTDIR/a.txt
+
+echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.$c.fa
+echo '>insert_'$c':'$x > $OUTDIR/seqs/$x.$c.pos
 if [ "$insert" != '' ]
 then
     echo $insert >> $OUTDIR/seqs/$x.$c.fa
