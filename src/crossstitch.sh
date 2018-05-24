@@ -90,13 +90,13 @@ fi
 
 if [[ $REFINE == "1" ]]
 then 
-  if [ ! -r data/pbAll.refined.vcf ]
+  if [ ! -r $OUTPREFIX.refined.vcf ]
   then
     echo "Refining SVs"
-    $BINDIR/../sv/go.sh -v $STRUCTURALVARIANTS -b $LONGREADSBAM -f $GENOME -o $OUTPREFIX.refined.vcf
+    $BINDIR/refineinsertions.sh $STRUCTURALVARIANTS $LONGREADSBAM $GENOME $OUTPREFIX.refined.vcf
   fi
 else
-  if [ ! -r data/pbAll.refined.vcf ]
+  if [ ! -r $OUTPREFIX.refined.vcf ]
   then
     echo "Skip SV refinement"
     cp $STRUCTURALVARIANTS $OUTPREFIX.refined.vcf
