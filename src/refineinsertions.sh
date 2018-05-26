@@ -2,7 +2,7 @@ set -e
 
 if [ $# -ne 4 ]
 then
-  echo "USAGE: refineinsertions.sh long_reads.bam genome.fa outfile"
+  echo "USAGE: refineinsertions.sh structural_variants.vcf long_reads.bam genome.fa outfile"
   echo ""
   echo "Details:"
   echo "  structural_variants.vcf:           VCF file of structural variants identified using Sniffles"

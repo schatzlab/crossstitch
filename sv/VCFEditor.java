@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 public class VCFEditor {
-static boolean verbose = false;
+static boolean verbose = true;
 public static void main(String[] args) throws IOException
 {
     String readFn = args[0], posFn = args[1], vcfFn = args[2];
@@ -162,7 +162,19 @@ public static void main(String[] args) throws IOException
             Process child = Runtime.getRuntime().exec(command);
             InputStream seqStream = child.getInputStream();
             Scanner seqInput = new Scanner(seqStream);
+            if(!seqInput.hasNext())
+            {
+                out.println(line);
+                logout.println("faidx failed in "+ch+":"+curPos+" "+ins);
+                continue;
+            }
             seqInput.next();
+            if(!seqInput.hasNext())
+            {
+                out.println(line);
+                logout.println("faidx failed in "+ch+":"+curPos+" "+ins);
+                continue;
+            }
             seq = seqInput.next();
         }
         while(str.hasMoreTokens())

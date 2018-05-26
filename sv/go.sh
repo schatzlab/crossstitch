@@ -7,7 +7,7 @@ echo $BINDIR
 echo $OUTDIR
 rm -r $OUTDIR/*
 rm -r $OUTDIR
-export _JAVA_OPTIONS="-XX:ParallelGCThreads=16"
+export _JAVA_OPTIONS="-XX:ParallelGCThreads=8"
 javac $BINDIR/*.java
 mkdir $OUTDIR
 mkdir $OUTDIR/alignments
@@ -34,6 +34,12 @@ done
 echo $fastaFile
 if [ -z "${vcfFile}" ] || [ -z "${bamFile}" ] || [ -z "${fastaFile}" ] || [ -z "${outputFile}" ]; then
     usage
+fi
+
+if [ ! -r $bamFile'.bai' ]
+then
+  echo "Indexing bam file"
+  samtools index $bamFile
 fi
 
 vcfPath=$WORKINGDIR/$vcfFile

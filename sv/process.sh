@@ -7,7 +7,8 @@ echo 'flagsflags: ' $1 ' ' $2 ' ' $3 ' ' $4 ' ' $5
 numReads=`wc -l < $y`
 l=${#y}
 ol=${#OUTDIR}
-c="${y#*.}"
+ty=${y:ol+9:l}
+c="${ty#*.}"
 c="${c#*.}"
 x=${y:ol+9:l-4-ol-9-${#c}-1}
 echo 'Processing insertion '$c:$x
@@ -47,6 +48,8 @@ if [ "$left" -lt 1 ]
 then
     left=1
 fi
+echo $c:$left-$(($x + $offset))
+echo $fastaFile
 samtools faidx $fastaFile $c:$left-$(($x + $offset)) > $OUTDIR/samples/"$x".fa.$c
 
 ngmlr -t 4 -r $OUTDIR/samples/"$x".fa.$c -q $OUTDIR/falconsense_output/"$x".correctedReads.fasta.$c -o $OUTDIR/results/"$x"_all.sam.$c
