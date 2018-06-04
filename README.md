@@ -43,7 +43,7 @@ Details:
 
 ## Running Insertion Refinement
 
-The unphased structural variant must include the names of supporting reads for insertions (sniffles -n <x>, where x > 0).
+The unphased structural variant must include the names of supporting reads for insertions (sniffles -n [x], where x > 0).
 
 ```
 $ refineinsertions.sh unphased_structural_variants.vcf long_reads.bam genome.fa outputfile
