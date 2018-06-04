@@ -29,7 +29,7 @@ $ make
 Currently only human genomes are supported for diploid genome construction.
 
 ```
-$ crossstich.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix gender refine
+$ crossstitch.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix gender refine
  
 Details:
   phased_snps.vcf:                   VCF file of phased SNP and indel variants. Recommend LongRanger (10X only) or HapCUT2 (HiC and/or 10X)
@@ -39,6 +39,20 @@ Details:
   outputprefix:                      Prefix for output files
   gender:                            "male" or "female", used to ensure sex chromosomes are correctly used
   refine:                            optionally refine structural variant calls with local assembly (1=refine, 0=skip)
+```
+
+## Running Insertion Refinement
+
+The unphased structural variant must include the names of supporting reads for insertions (sniffles -n <x>, where x > 0).
+
+```
+$ refineinsertions.sh unphased_structural_variants.vcf long_reads.bam genome.fa outputfile
+ 
+Details:
+  unphased_structural_variants.vcf:  VCF file of structural variants identified using Sniffles
+  long_reads.bam:                    BAM file of long reads aligned with NGMLR
+  genome.fa:                         Reference genome used
+  outputfile:                        Name of new VCF file to output
 ```
 
 
