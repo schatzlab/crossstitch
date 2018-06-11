@@ -100,7 +100,7 @@ public static void main(String[] args) throws IOException
                     }
                     int end = start + svlen;
                     if(verbose) System.out.println("deletion length: " + Integer.parseInt(getField(line, "SVLEN")));
-                    String command = "samtools faidx " + fastaFn + " " + ch + ":" + (start) + "-" + (end-1);
+                    String command = "samtools faidx " + fastaFn + " " + ch + ":" + Math.max(1, start-left) + "-" + (end-1+right);
                     if(verbose) System.out.println("deletion: " + command);
                     Process child = Runtime.getRuntime().exec(command);
                     InputStream seqStream = child.getInputStream();
@@ -119,7 +119,7 @@ public static void main(String[] args) throws IOException
                     }
                     else if(tokenIdx == 4)
                     {
-                        cur = "X";
+                        cur = seq.substring(0, left) + seq.substring(seq.length() - right);
                     }
                     out.print(cur);
                     if(str.hasMoreTokens()) out.print('\t');
