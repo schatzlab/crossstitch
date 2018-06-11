@@ -54,7 +54,9 @@ public static void main(String[] args) throws IOException
             id = posString.substring(1);
             continue;
         }
+        else if(posString.length() == 0) continue;
         int p = Integer.parseInt(posString);
+        System.out.println(p);
         posMap.put(id.substring(id.indexOf('_')+1), p);
         while(posInput.hasNext())
         {
