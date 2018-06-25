@@ -1,7 +1,8 @@
 BINDIR=`dirname $(readlink -f "$0")`
 WORKINGDIR=`pwd`
-mkdir $WORKINGDIR/csout
-OUTDIR=$WORKINGDIR/csout
+number=$RANDOM ##makes it work for multiple instances.
+mkdir $WORKINGDIR/csout_$number
+OUTDIR=$WORKINGDIR/csout_$number
 echo $WORKINGDIR
 echo $BINDIR
 echo $OUTDIR
