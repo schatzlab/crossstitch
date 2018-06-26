@@ -31,11 +31,11 @@ public static void main(String[] args) throws IOException
 			{
 				if(t.startsWith("RNAMES="))
 				{
-				    supportedVariants++;
 				    TreeSet<String> readList = new TreeSet<String>();
 					String list = t.substring(7);
 					StringTokenizer str = new StringTokenizer(list, ",");
 					while(str.hasMoreTokens()) readList.add(str.nextToken());
+					if(readList.size() > 0) supportedVariants++;
 					PrintWriter out = new PrintWriter(new File(outDir + "/" + curPos + ".txt"+"."+chr));
 					for(String s : readList) out.println(s);
 					out.close();
@@ -44,6 +44,9 @@ public static void main(String[] args) throws IOException
 			}
 		}
 	}
+	PrintWriter out = new PrintWriter(new File(outDir + "/" + "log.out"));
+	out.println(supportedVariants);
+	out.close();
 	System.out.println("Number of insertions found: " + numInsertions);
 	System.out.println("Number of insertions with supporting reads found: " + supportedVariants);
 }

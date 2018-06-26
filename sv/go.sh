@@ -59,6 +59,13 @@ INSERT_AFTER=0 # The number of characters after the insertion to include in the 
 # Generate lists of reads for all insertions
 java -cp "${BINDIR}" ReadFinder $vcfPath $OUTDIR/inserts
 
+numSupportedVariants=`cat $OUTDIR/inserts/out.log`
+
+if [ "$numSupportedVariants" -eq "0" ]; then
+   echo "No variant with supporting reads found";
+   exit;
+fi
+
 # Process all insertions in parallel
 parallel --timeout 500 --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaPath ::: $OUTDIR/inserts/*.txt.*
 
