@@ -71,5 +71,26 @@ Details:
 *.chain: liftover file to relate coordinates on the personalized assembly to the reference (such as GRCh38) 
 ```
 
+## Simulations for testing
+
+### Simple example: 5 indels, zero other SVs
+
+```
+$ cd crossstitch/simul/simple
+$ ../sim_example.sh
+```
+
+### Complex example: 20 indels, 10 inversions
+
+```
+$ cd crossstitch/simul/fiftyinv
+$ ../sim_example.sh
+```
+
+### Creating you own
+
+Create/copy the simul.param file from the simple example with more/less SVs of different types. Then run `../sim_example.sh`
+
+
 
 
