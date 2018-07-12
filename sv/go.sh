@@ -61,7 +61,7 @@ java -cp "${BINDIR}" ReadFinder $vcfPath $OUTDIR/inserts
 
 numSupportedVariants=`cat $OUTDIR/inserts/out.log`
 
-if [ "$numSupportedVariants" -eq "0" ]; then
+if [ "$numSupportedVariants" = "0" ]; then
    echo "No variant with supporting reads found";
    exit;
 fi
