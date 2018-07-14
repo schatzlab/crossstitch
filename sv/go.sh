@@ -66,6 +66,12 @@ if [ "$numSupportedVariants" = "0" ]; then
    exit;
 fi
 
+echo 'bin dir: '$BINDIR
+echo 'out dir: '$OUTDIR
+echo 'bam file: '$bamFile
+echo 'fasta path: '$fastaPath
+numFiles=`ls $OUTDIR/inserts/*.txt.* | wc -l`
+echo 'number of insertions to process: '$numFiles
 # Process all insertions in parallel
 parallel --timeout 500 --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaPath ::: $OUTDIR/inserts/*.txt.*
 
