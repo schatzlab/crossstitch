@@ -55,6 +55,27 @@ Details:
   outputfile:                        Name of new VCF file to output
 ```
 
+## Simulations for testing
+
+### Simple example: 5 indels, zero other SVs
+
+```
+$ cd crossstitch/simul/simple
+$ ../sim_example.sh 1
+```
+
+### Complex example: 20 indels, 10 inversions
+
+```
+$ cd crossstitch/simul/fiftyinv
+$ ../sim_example.sh 1
+```
+
+### Creating you own simulations
+
+Create/copy the simul.param file from the simple example with more/less SVs of different types. Then run `../sim_example.sh`
+
+
 
 ## Output files
 
@@ -70,6 +91,8 @@ Details:
 *.map:   liftover file to relate coordinates on the personalized assembly to the reference (such as GRCh38) 
 *.chain: liftover file to relate coordinates on the personalized assembly to the reference (such as GRCh38) 
 ```
+
+
 
 
 
