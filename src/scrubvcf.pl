@@ -97,11 +97,17 @@ while (<>)
         {
           if (defined $lastline0) { print $lastline0; $lastline0 = undef; if ($lasthomo) { $lastline1 = undef; }}
           if (defined $lastline1) { print $lastline1; $lastline1 = undef; }
+
+          ## totally reset between chromosomes
+          $lastpos0 = -1; $lastref0 = ""; $lastalt0 = ""; $lastline0 = undef; $lastsniffles0 = 0; 
+          $lastpos1 = -1; $lastref1 = ""; $lastalt1 = ""; $lastline1 = undef; $lastsniffles1 = 0;
+          $lasthomo = 0;
         }
         else
         {
-          if ((defined $lastline0) && ($pos > $lastpos0)) { print $lastline0; $lastline0 = undef; if ($lasthomo) { $lastline1 = undef; } }
-          if ((defined $lastline1) && ($pos > $lastpos1)) { print $lastline1; $lastline1 = undef; }
+          ## reset lastline and other state varianbles
+          if ((defined $lastline0) && ($pos > $lastpos0)) { print $lastline0; $lastline0 = undef; $lastsniffles0 = 0; if ($lasthomo) { $lastline1 = undef; $lastsniffles1 = 0; $lasthomo = 0; } }
+          if ((defined $lastline1) && ($pos > $lastpos1)) { print $lastline1; $lastline1 = undef; $lastsniffles1 = 0; }
         }
       }
 
@@ -129,14 +135,14 @@ while (<>)
                ## rescued
                $types{"OVERRULE_$hap"}++;
                $lastline0 = undef; if ($lasthomo) { $lastline1 = undef; $lastpos1 = -1; }
-               print STDERR " overrule overlap detected on hap $hap (lastpos: $lastpos0 $lastref0 $lastalt0) at $_"; 
+               print STDERR " overrule overlap detected 1 on hap $hap (lastpos: $lastpos0 @ $lastchr $lastref0 $lastalt0) at $_"; 
             }
             else
             {
               $printvar = 0; 
               $types{"FAIL_$hap"}++; 
               if ($issniffles) { $types{"FAIL_SNIFFLES_$hap"}++; }
-              print STDERR " overlap detected on hap $hap (lastpos: $lastpos0 $lastref0 $lastalt0) at $_"; 
+              print STDERR " overlap detected 1 on hap $hap (lastpos: $lastpos0 @ $lastchr $lastref0 $lastalt0) at $_"; 
             } 
           }
         }
@@ -152,14 +158,14 @@ while (<>)
                 ## rescued
                 $types{"OVERRULE_$hap"}++;
                 $lastline1 = undef; if ($lasthomo) { $lastline0 = undef; $lastpos0 = -1; }
-                print STDERR " overrule overlap detected on hap $hap (lastpos: $lastpos1 $lastref1 $lastalt1) at $_"; 
+                print STDERR " overrule overlap 2 detected on hap $hap (lastpos: $lastpos1 @ $lastchr $lastref1 $lastalt1) at $_"; 
               }
               else
               {
                 $printvar = 0; 
                 $types{"FAIL_$hap"}++; 
                 if ($issniffles) { $types{"FAIL_SNIFFLES_$hap"}++; }
-                print STDERR " overlap detected on hap $hap (lastpos: $lastpos1 $lastref1 $lastalt1) at $_"; 
+                print STDERR " overlap detected 2 on hap $hap (lastpos: $lastpos1 @ $lastchr $lastref1 $lastalt1) at $_"; 
               }
             } 
           }
