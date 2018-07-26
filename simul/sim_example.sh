@@ -16,7 +16,8 @@ then
 VCF2DIPLOID=/work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar
 SNIFFLES=/work-zfs/mschatz1/mschatz/build/Sniffles/bin/sniffles-core-1.0.6/sniffles
 SURVIVOR=/work-zfs/mschatz1/mschatz/build/SURVIVOR/Debug/SURVIVOR
-FGBIO=/home-3/mschatz1@jhu.edu/build/fgbio/target/scala-2.12/fgbio-0.2.1-SNAPSHOT.jar
+#FGBIO=/home-3/mschatz1@jhu.edu/build/fgbio/target/scala-2.12/fgbio-0.2.1-SNAPSHOT.jar
+FGBIO=/home-3/mschatz1@jhu.edu/build/fgbio/target/scala-2.12/fgbio-0.6.1.jar
 fi
 
 
@@ -222,7 +223,8 @@ fi
 if [ ! -r data/matesAll.phased.vcf ]
 then
   echo "Making a new phased vcf file from mates phasing + illumina snps"
-  java -jar $FGBIO HapCutToVcf -i data/matesAll.hapcut -v data/illAll.vcf -o data/matesAll.phased.vcf
+  java -jar $FGBIO HapCutToVcf -i data/matesAll.hapcut -v data/illAll.vcf -o data/matesAll.phased.vcf.gz
+  gunzip data/matesAll.phased.vcf.gz
 fi
 
 
