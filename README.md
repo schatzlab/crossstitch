@@ -45,6 +45,14 @@ Details:
 
 The unphased structural variant must include the names of supporting reads for insertions (sniffles -n [x], where x > 0).
 
+In addition, gnu-parallel must be installed.  On systems with conda, this can be installed by running the following command:
+
+```
+conda install parallel
+```
+
+To run the insertion refinement on its own, use the following:
+
 ```
 $ refineinsertions.sh unphased_structural_variants.vcf long_reads.bam genome.fa outputfile
  
