@@ -33,8 +33,8 @@ java -cp "${BINDIR}" FalconFormatter $OUTDIR/inserts/extracted_$x.fa.$c $OUTDIR/
 
 # Run Falconsense using default parameters
 quarterReads=`expr $numReads / 8`
-$BINDIR/falcon_sense --min_idt 0.7 --min_len 500 --max_read_len 40896 --min_ovl_len 250 --min_cov $quarterReads --n_core 2 > $OUTDIR/falconsense_output/$x.correctedReads.fasta.$c < $OUTDIR/inserts/extracted_falcon_$x.fa.$c
-$BINDIR/falcon_sense --min_idt 0.7 --min_len 500 --max_read_len 40896 --min_ovl_len 250 --min_cov 2 --n_core 2 > $OUTDIR/falconsense_output/$x.correctedReads.insertions.fasta.$c < $OUTDIR/inserts/insertions_extracted_falcon_$x.fa.$c
+$BINDIR/falcon_sense --min_idt 0.7 --min_len 500 --max_read_len 1234567 --min_ovl_len 250 --min_cov $quarterReads --n_core 2 > $OUTDIR/falconsense_output/$x.correctedReads.fasta.$c < $OUTDIR/inserts/extracted_falcon_$x.fa.$c
+$BINDIR/falcon_sense --min_idt 0.7 --min_len 500 --max_read_len 1234567 --min_ovl_len 250 --min_cov 2 --n_core 2 > $OUTDIR/falconsense_output/$x.correctedReads.insertions.fasta.$c < $OUTDIR/inserts/insertions_extracted_falcon_$x.fa.$c
 
 # Reformat the file to have the entire sequences on one line for downstream processing
 java -cp "${BINDIR}" FastaFileFixer2 $OUTDIR/falconsense_output/$x.correctedReads.fasta.$c $OUTDIR/falconsense_output/$x.correctedReads.fixed.fasta.$c
