@@ -102,7 +102,7 @@ public static void main(String[] args) throws IOException
                     }
                     int end = start + svlen;
                     if(verbose) System.out.println("deletion length: " + Integer.parseInt(getField(line, "SVLEN")));
-                    String command = "samtools faidx " + fastaFn + " " + "chr"+ch + ":" + Math.max(1, start-left) + "-" + (end-1+right);
+                    String command = "samtools faidx " + fastaFn + " " + ch + ":" + Math.max(1, start-left) + "-" + (end-1+right);
                     if(verbose) System.out.println("deletion: " + command);
                     Process child = Runtime.getRuntime().exec(command);
                     InputStream seqStream = child.getInputStream();
@@ -162,7 +162,7 @@ public static void main(String[] args) throws IOException
         String seq = "X";
         if(svPos != null && svPos != -1)
         {
-            String command = "samtools faidx " + fastaFn + " chr" + ch + ":" + Math.max(1, (svPos-left+1)) + "-" + (svPos+right);
+            String command = "samtools faidx " + fastaFn + " " + ch + ":" + Math.max(1, (svPos-left+1)) + "-" + (svPos+right);
             if(verbose) System.out.println("insertion: " + command);
             Process child = Runtime.getRuntime().exec(command);
             InputStream seqStream = child.getInputStream();
