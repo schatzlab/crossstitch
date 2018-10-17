@@ -73,13 +73,17 @@ echo 'fasta path: '$fastaPath
 numFiles=`ls $OUTDIR/inserts/*.txt.* | wc -l`
 echo 'number of insertions to process: '$numFiles
 # Process all insertions in parallel
-parallel --gnu --timeout 500 --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaPath ::: $OUTDIR/inserts/*.txt.*
+#parallel --gnu --timeout 500 --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaPath ::: $OUTDIR/inserts/*.txt.*
+find $OUTDIR/inserts/ -name '*.txt.*' | parallel --gnu --timeout 500 --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaPath
 
 wait
 
 "${BINDIR}"/clean_parallel.sh $BINDIR $OUTDIR $bamFile $fastaFile
-cat $OUTDIR/seqs/*.fa > $OUTDIR/all.seq
-cat $OUTDIR/seqs/*.pos > $OUTDIR/all.pos
+#cat $OUTDIR/seqs/*.fa > $OUTDIR/all.seq
+#cat $OUTDIR/seqs/*.pos > $OUTDIR/all.pos
+find $OUTDIR/seqs/ -name '*.fa' | xargs cat > $OUTDIR/all.seq
+find $OUTDIR/seqs/ -name '*.pos' | xargs cat > $OUTDIR/all.pos
+
 java -cp "${BINDIR}" VCFEditor $OUTDIR/all.seq $OUTDIR/all.pos $vcfPath $fastaPath $WORKINGDIR/$outputFile $INSERT_BEFORE $INSERT_AFTER
 
 
