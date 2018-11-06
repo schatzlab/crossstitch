@@ -11,14 +11,14 @@ public static void main(String[] args) throws IOException
 	String vcfFn = args[0];
 	String outDir = args[1];
 	BufferedReader vcfScanner = new BufferedReader(new InputStreamReader(new FileInputStream(new File(vcfFn))));
-	String find = "<INS>";
+	String find = "<INS>", find2 = "SVTPYE=INS;";
 	String line = "";
 	int numInsertions = 0, supportedVariants = 0;
 	while(true)
 	{
 		line = vcfScanner.readLine();
 		if(line == null) break;
-		if(line.contains(find))
+		if(line.contains(find) || line.contains(find2))
 		{
 		    numInsertions++;
 			String[] tokens = line.split("\t");
