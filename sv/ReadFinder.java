@@ -11,7 +11,7 @@ public static void main(String[] args) throws IOException
 	String vcfFn = args[0];
 	String outDir = args[1];
 	BufferedReader vcfScanner = new BufferedReader(new InputStreamReader(new FileInputStream(new File(vcfFn))));
-	String find = "<INS>", find2 = "SVTPYE=INS;";
+	String find = "<INS>", find2 = "SVTYPE=INS;";
 	String line = "";
 	int numInsertions = 0, supportedVariants = 0;
 	while(true)
