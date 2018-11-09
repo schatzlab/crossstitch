@@ -15,7 +15,7 @@ public static void main(String[] args) throws IOException
     PrintWriter out = new PrintWriter(new File(outputFn));
     PrintWriter logout = new PrintWriter(new File(vcfFn+".log"));
     HashMap<String, String> readMap = new HashMap<String, String>();
-    String find = "<INS>";
+    String find = "SVTYPE=INS;";
     String id = "";
     if(readsInput.hasNext())
     {
@@ -87,14 +87,14 @@ public static void main(String[] args) throws IOException
         String ch = tokens[0];
         if(!line.contains(find))
         {
-            if(line.contains("<DEL>"))
+            if(line.contains("SVTYPE=DEL;"))
             {
                 String seq = "";
                 if(line.contains("SEQ=")) seq = getField(line, "SEQ");
                 else
                 {
                     int start = curPos;
-                    int svlen = Integer.parseInt(getField(line, "SVLEN"));
+                    int svlen = Math.abs(Integer.parseInt(getField(line, "SVLEN")));
                     if(svlen > 100000)
                     {
                         out.println(line);
@@ -137,6 +137,7 @@ public static void main(String[] args) throws IOException
         if(!readMap.containsKey(ch+":"+curPos+""))
         {
             logout.println(ch+":"+curPos+"");
+            out.println(line);
             continue;
         }
         String ins = readMap.get(ch+":"+curPos+"");
@@ -144,12 +145,15 @@ public static void main(String[] args) throws IOException
         if(ins == "null")
         {
             logout.println(ch+":"+curPos+" "+ins);
+            out.println(line);
             continue;
         }
         String output = line;
         if(ins.length() == 0)
         {
             logout.println("Used sniffles output for " + (ch+":"+curPos+""));
+            out.println(line);
+            continue;
         }
         else
         {
@@ -181,6 +185,11 @@ public static void main(String[] args) throws IOException
                 continue;
             }
             seq = seqInput.next();
+        }
+        if(!str.hasMoreTokens())
+        {
+            out.println(line);
+            continue;
         }
         while(str.hasMoreTokens())
         {
