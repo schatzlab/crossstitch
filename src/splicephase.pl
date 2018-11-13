@@ -188,7 +188,7 @@ while (<SNIFFLESVCF>)
       }
       elsif ($f =~ /^SVLEN=/)
       {
-        $v->{svlen} = substr($f, 6);
+        $v->{svlen} = abs(int(substr($f, 6)));
       }
     }
 
