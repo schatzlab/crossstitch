@@ -62,9 +62,6 @@ sub getseq
     $seq .= $_;
   }
 
-  # print ">$chr:$pos-$end\n";
-  # print "$seq\n";
-  #
   system("rm -f $TMPFILE");
 
   return $seq;
@@ -135,7 +132,10 @@ while (<SNIFFLESVCF>)
   else
   {
     chomp;
-    my ($chrom, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = split /\s+/, $_; 
+    my ($chrom, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = split /\s+/, $_;
+    my $v;
+    $v->{oldalt} = $alt;
+    $v->{oldref} = $ref; 
     if (index($info, "SVTYPE=INS") >= 0)
     {
       $alt = "<INS>";
@@ -144,7 +144,6 @@ while (<SNIFFLESVCF>)
     {
       $alt = "<DEL>";
     }
-    my $v;
     $v->{chrom}  = $chrom;
     $v->{pos}    = $pos;
     $v->{id}     = $id;
@@ -382,17 +381,14 @@ foreach my $chr (sort keys %snifflesvariants)
           if ($v->{alt} eq "<DEL>")
           {
             ## Create a dummy string of Xs that are the right length for the deletion
-            my $delseq = "X" x $svlen;
-            $v->{ref} = "X" . $delseq;
-            $v->{alt} = "X";
+            $v->{ref} = $v->{oldref};
+            $v->{alt} = $v->{oldalt};
 
             $includesv = 1;
           }
           elsif ($v->{alt} eq "<INS>")
           {
-            if (exists $v->{seq}) 
-            {
-              my $seqlen = length ($v->{seq});
+              my $seqlen = $v->{svlen};
               my $svlen = $v->{svlen};
 
               $includesv = 1;
@@ -403,15 +399,6 @@ foreach my $chr (sort keys %snifflesvariants)
                 $includesv = $REPORT_INVALID_LEN_INSERTIONS;;
                 $svlenerr++;
               }
-
-              $v->{alt} = "X" . $v->{seq};
-              $v->{ref} = "X";
-            }
-            else
-            { 
-              print "ERROR: expected insertion sequence but found none! skipping\n"; 
-              $includesv = 0;
-            }
           }
           elsif ($v->{alt} eq "<INV>")
           {
