@@ -84,8 +84,10 @@ VCFID=`head -5000 $PHASEDSNPS | grep '#CHROM' | awk '{print $10}'`
 
 if [ ! -r $OUTPREFIX.hairs ]
 then
+  echo "preprocessing phased snps to remove haplotype genotype calls"
+  java -cp "${BINDIR}" RemoveStrayHairs $PHASEDSNPS $PHASEDSNPS.prehairs
   echo "extracting pacbio-hairs from phased snps (mbq 0)"
-  $EXTRACTHAIRS --mbq 0 --bam $LONGREADSBAM --VCF $PHASEDSNPS --out $OUTPREFIX.hairs
+  $EXTRACTHAIRS --mbq 0 --bam $LONGREADSBAM --VCF $PHASEDSNPS.prehairs --out $OUTPREFIX.hairs
 fi
 
 if [[ $REFINE == "1" ]]
