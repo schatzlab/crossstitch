@@ -59,7 +59,7 @@ INSERT_AFTER=0 # The number of characters after the insertion to include in the 
 # Generate lists of reads for all insertions
 java -cp "${BINDIR}" ReadFinder $vcfPath $OUTDIR/inserts
 
-numSupportedVariants=`cat $OUTDIR/inserts/out.log`
+numSupportedVariants=`cat $OUTDIR/inserts/log.out`
 
 if [ "$numSupportedVariants" = "0" ]; then
    echo "No variant with supporting reads found";
