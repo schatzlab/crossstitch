@@ -249,6 +249,6 @@ static String substitute(String s, String field, String val)
             return before + val + after;
         }
     }
-    return "";
+    return s;
 }
 }
