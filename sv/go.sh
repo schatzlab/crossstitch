@@ -22,14 +22,17 @@ mkdir $OUTDIR/cert
 
 usage() { echo "Usage: $0 -v <vcfFile> -b <bamFile> -f <fastaFile> -o <outputFile>" 1>&2; exit 1; }
 
-while getopts v:b:f:o: option
+jobs=16
+
+while getopts v:b:f:o:j: option
 do
     case "${option}"
     in
     v) vcfFile=${OPTARG};;
     b) bamFile=${OPTARG};;
     f) fastaFile=${OPTARG};;
-    o) outputFile=$OPTARG;;
+    o) outputFile=${OPTARG};;
+    j) jobs=${OPTARG};;
  esac
 done
 echo $fastaFile
@@ -74,7 +77,7 @@ numFiles=`find $OUTDIR/inserts/*.txt.* | wc -l`
 echo 'number of insertions to process: '$numFiles
 # Process all insertions in parallel
 #parallel --gnu --timeout 500 --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaPath ::: $OUTDIR/inserts/*.txt.*
-find $OUTDIR/inserts/ -name '*.txt.*' | parallel --gnu --timeout 500 --jobs 16 "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaPath
+find $OUTDIR/inserts/ -name '*.txt.*' | parallel --gnu --timeout 500 --jobs $jobs "${BINDIR}"/process.sh {} $BINDIR $OUTDIR $bamFile $fastaPath
 
 wait
 
