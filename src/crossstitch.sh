@@ -95,7 +95,9 @@ then
   if [ ! -r $OUTPREFIX.refined.vcf ]
   then
     echo "Refining SVs"
-    $BINDIR/refineinsertions.sh $STRUCTURALVARIANTS $LONGREADSBAM $GENOME $OUTPREFIX.refined.vcf
+    $BINDIR/../RefineInsertions/rebuild_external.sh
+    $BINDIR/../RefineInsertions/build.sh
+    java -cp $BINDIR/../RefineInsertions/src Iris genome_in=$GENOME vcf_in=$STRUCTURALVARIANTS reads_in=$LONGREADSBAM vcf_out=$OUTPREFIX.refined.vcf
   fi
 else
   if [ ! -r $OUTPREFIX.refined.vcf ]

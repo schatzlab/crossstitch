@@ -1,3 +1,6 @@
 [submodule "vcf2diploid"]
 	path = vcf2diploid
 	url = https://github.com/mschatz/vcf2diploid.git
+[submodule "RefineInsertions"]
+	path = RefineInsertions
+	url = git@github.com:mkirsche/RefineInsertions.git
