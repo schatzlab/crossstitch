@@ -28,7 +28,7 @@ GENDER=$6
 REFINE=$7
 
 VCF2DIPLOIDJAR=$BINDIR/../vcf2diploid/vcf2diploid.jar
-EXTRACTHAIRS=extractHAIRS
+EXTRACTHAIRS=/work-zfs/mschatz1/mkirsche/github/HapCUT2/build/extractHAIRS
 GZIP=pigz
 
 echo "crossstich.sh"
@@ -86,8 +86,8 @@ if [ ! -r $OUTPREFIX.hairs ]
 then
   echo "preprocessing phased snps to remove haplotype genotype calls"
   java -cp "${BINDIR}" RemoveStrayHairs $PHASEDSNPS $PHASEDSNPS.prehairs
-  echo "extracting pacbio-hairs from phased snps (mbq 0)"
-  $EXTRACTHAIRS --mbq 0 --bam $LONGREADSBAM --VCF $PHASEDSNPS.prehairs --out $OUTPREFIX.hairs
+  echo "extracting pacbio-hairs from phased snps (mbq 4)"
+  $EXTRACTHAIRS --mbq 4 --bam $LONGREADSBAM --VCF $PHASEDSNPS.prehairs --out $OUTPREFIX.hairs
 fi
 
 if [[ $REFINE == "1" ]]

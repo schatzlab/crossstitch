@@ -39,6 +39,25 @@ public static void main(String[] args) throws IOException
 					out.print((i == GTFIELD ? gtField : vcfFields[i]) + (i == vcfFields.length - 1 ? "\n" : "\t"));
 				}
 			}
+            else if(gtLength == 3 || gtField.length() == 3)
+            {
+                if(gtField.substring(0, 3).equals("./."))
+                {
+                    // Genotype is single character - duplicate it
+				    gtField = "0/0" + gtField.substring(3);
+				
+    				// Print out fields one at a time and replace genotype field with updated string
+	    			for(int i = 0 ; i<vcfFields.length; i++)
+		    		{
+			    		out.print((i == GTFIELD ? gtField : vcfFields[i]) + (i == vcfFields.length - 1 ? "\n" : "\t"));
+				    }
+
+                }
+                else
+                {
+                    out.println(line);
+                }
+            }
 			else out.println(line);
 		}
 	}
