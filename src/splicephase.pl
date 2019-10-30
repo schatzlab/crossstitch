@@ -10,7 +10,7 @@ my $SVTOOLONG = 1.2;
 my $SVTOOSHORT = 0.8;
 my $REPORT_INVALID_LEN_INSERTIONS = 1;
 my $MIN_PHASED_SNV = 5;
-my $MAX_SV_LEN = 20000;
+my $MAX_SV_LEN = 100000;
 
 my $USAGE = "splicephase.pl phased.vcf sniffles.vcf loadreads.hairs spliced.vcf ref.fa\n";
 
