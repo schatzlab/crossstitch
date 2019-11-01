@@ -5,7 +5,7 @@ set -e
 
 if [ $# -ne 7 ]
 then
-  echo "USAGE: crossstich.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix gender refine"
+  echo "USAGE: crossstitch.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix gender refine"
   echo ""
   echo "Details:"
   echo "  phased_snps.vcf:                   VCF file of phased SNP and indel variants. Recommend LongRanger (10X only) or HapCUT2 (HiC and/or 10X)"
