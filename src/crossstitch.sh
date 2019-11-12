@@ -84,8 +84,11 @@ VCFID=`head -5000 $PHASEDSNPS | grep '#CHROM' | awk '{print $10}'`
 
 if [ ! -r $OUTPREFIX.hairs ]
 then
-  echo "preprocessing phased snps to remove haplotype genotype calls"
-  java -cp "${BINDIR}" RemoveStrayHairs $PHASEDSNPS $PHASEDSNPS.prehairs
+  if [ ! -r $PHASEDSNPS.prehairs ]
+  then
+    echo "preprocessing phased snps to remove haplotype genotype calls"
+    java -cp "${BINDIR}" RemoveStrayHairs $PHASEDSNPS $PHASEDSNPS.prehairs
+  fi
   echo "extracting pacbio-hairs from phased snps (mbq 4)"
   $EXTRACTHAIRS --mbq 4 --bam $LONGREADSBAM --VCF $PHASEDSNPS.prehairs --out $OUTPREFIX.hairs
 fi
@@ -95,9 +98,9 @@ then
   if [ ! -r $OUTPREFIX.refined.vcf ]
   then
     echo "Refining SVs"
-    $BINDIR/../RefineInsertions/rebuild_external.sh
+    #$BINDIR/../RefineInsertions/rebuild_external.sh
     $BINDIR/../RefineInsertions/build.sh
-    java -cp $BINDIR/../RefineInsertions/src Iris genome_in=$GENOME vcf_in=$STRUCTURALVARIANTS reads_in=$LONGREADSBAM vcf_out=$OUTPREFIX.refined.vcf
+    java -cp $BINDIR/../RefineInsertions/src Iris genome_in=$GENOME vcf_in=$STRUCTURALVARIANTS reads_in=$LONGREADSBAM vcf_out=$OUTPREFIX.refined.vcf threads=12
   fi
 else
   if [ ! -r $OUTPREFIX.refined.vcf ]

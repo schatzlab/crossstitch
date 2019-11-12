@@ -334,7 +334,7 @@ foreach my $chr (sort keys %snifflesvariants)
     {
       if ($svlen <= $MAX_SV_LEN)
       {
-        if (($genotype eq "0/0") || ($genotype eq "0/1") || ($genotype eq "1/1"))
+        if (($genotype eq "0/0") || ($genotype eq "0/1") || ($genotype eq "1/1") || ($genotype eq "./."))
         {
           ## phase the genotype call
           my $newgenotype = $genotype;
@@ -352,7 +352,7 @@ foreach my $chr (sort keys %snifflesvariants)
               elsif  ($hap1 >= $hap2 * $OVERRULE_HOMOZYGOUS_FACTOR) { $newgenotype = "1|0"; $overrulehomo = 1; }
             }
           }
-          elsif (($genotype eq "0/1") || ($genotype eq "0/0"))
+          elsif (($genotype eq "0/1") || ($genotype eq "0/0") || ($genotype eq "./."))
           {
             if (($hap1 + $hap2) < $MIN_PHASED_SNV)
             {
