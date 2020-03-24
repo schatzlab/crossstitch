@@ -5,7 +5,7 @@ set -e
 
 if [ $# -ne 7 ]
 then
-  echo "USAGE: crossstitch.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix gender refine"
+  echo "USAGE: crossstitch.sh phased_snps.vcf unphased_structural_variants.vcf long_reads.bam genome.fa outputprefix karyotype refine"
   echo ""
   echo "Details:"
   echo "  phased_snps.vcf:                   VCF file of phased SNP and indel variants. Recommend LongRanger (10X only) or HapCUT2 (HiC and/or 10X)"
@@ -13,7 +13,7 @@ then
   echo "  long_reads.bam:                    BAM file of long reads aligned with NGMLR"
   echo "  genome.fa:                         Reference genome used"
   echo "  outputprefix:                      Prefix for output files"
-  echo "  gender:                            "male" or "female", used to ensure sex chromosomes are correctly used"
+  echo "  karyotype:                         "xy" or "xx", used to ensure sex chromosomes are correctly used"
   echo "  refine:                            optionally refine structural variant calls with local assembly (1=refine, 0=skip)"
   exit
 fi
@@ -24,7 +24,7 @@ STRUCTURALVARIANTS=$2
 LONGREADSBAM=$3
 GENOME=$4
 OUTPREFIX=$5
-GENDER=$6
+KARYOTYPE=$6
 REFINE=$7
 
 VCF2DIPLOIDJAR=$BINDIR/../vcf2diploid/vcf2diploid.jar
@@ -37,7 +37,7 @@ echo "  PHASEDSNPS: $PHASEDSNPS"
 echo "  STRUCTURALVARIANTS: $STRUCTURALVARIANTS"
 echo "  LONGREADSBAM: $LONGREADSBAM"
 echo "  GENOME: $GENOME"
-echo "  GENDER: $GENDER"
+echo "  KARYOTYPE: $KARYOTYPE"
 echo "  REFINE: $REFINE"
 echo 
 echo "  OUT: $OUTPREFIX"
@@ -46,9 +46,9 @@ echo
 
 ## Sanity check parameters
 
-if [[ $GENDER != "male" && $GENDER != "female" ]]
+if [[ $KARYOTYPE != "xy" && $KARYOTYPE != "xx" ]]
 then
-  echo "Unknown gender: $GENDER (must be male or female)"
+  echo "Unknown karyotype: $KARYOTYPE (must be xy or xx)"
   exit
 fi
 
@@ -82,6 +82,8 @@ GENOME=`readlink -f $GENOME`
 AS=$OUTPREFIX.alleleseq
 VCFID=`head -5000 $PHASEDSNPS | grep '#CHROM' | awk '{print $10}'`
 
+javac $BINDIR/*.java
+
 if [ ! -r $OUTPREFIX.hairs ]
 then
   if [ ! -r $PHASEDSNPS.prehairs ]
@@ -113,19 +115,19 @@ fi
 if [ ! -r $OUTPREFIX.scrubbed.vcf ]
 then
   echo "Scrubbing SV calls"
-  ($BINDIR/scrubvcf.pl $OUTPREFIX.refined.vcf > $OUTPREFIX.scrubbed.vcf) >& $OUTPREFIX.scrubbed.log
+  (java -cp $BINDIR RemoveInvalidVariants $OUTPREFIX.refined.vcf $OUTPREFIX.scrubbed.vcf) >& $OUTPREFIX.scrubbed.log
 fi
 
 if [ ! -r $OUTPREFIX.spliced.vcf ]
 then
   echo "Splicing in phased SVs"
-  $BINDIR/splicephase.pl $PHASEDSNPS $OUTPREFIX.scrubbed.vcf $OUTPREFIX.hairs $OUTPREFIX.spliced.vcf $GENOME >& $OUTPREFIX.spliced.log
+  java -cp $BINDIR PhaseSVs $PHASEDSNPS $OUTPREFIX.scrubbed.vcf $OUTPREFIX.hairs $OUTPREFIX.spliced.vcf $GENOME >& $OUTPREFIX.spliced.log
 fi
 
 if [ ! -r $OUTPREFIX.spliced.scrubbed.vcf ]
 then
   echo "Final scrub to remove overlapping spliced variants"
-  ($BINDIR/scrubvcf.pl -o $GENDER $OUTPREFIX.spliced.vcf > $OUTPREFIX.spliced.scrubbed.vcf) >& $OUTPREFIX.spliced.scrubbed.log
+  (java -cp $BINDIR RemoveInvalidVariants -o $KARYOTYPE $OUTPREFIX.spliced.vcf $OUTPREFIX.spliced.scrubbed.vcf) >& $OUTPREFIX.spliced.scrubbed.log
 fi
 
 if [ ! -r $OUTPREFIX.spliced.scrubbed.vcf.gz ]
@@ -178,14 +180,14 @@ then
 
   mv $OUTPREFIX.chrM.hap2.fa raw/attic
 
-  if [[ $GENDER == "male" ]]
+  if [[ $KARYOTYPE == "xy" ]]
   then
-    echo "male sample, making X and Y haploid"
+    echo "xy sample, making X and Y haploid"
     mv *chrX.hap2.fa *chrY.hap2.fa raw/attic
     cat raw/$OUTPREFIX.hap1.chain                                   | sed 's/paternal/hap1/' > $OUTPREFIX.hap1.chain
     $BINDIR/removechain.pl raw/$OUTPREFIX.hap2.chain chrM chrX chrY | sed 's/maternal/hap2/' > $OUTPREFIX.hap2.chain
   else
-    echo "female sample, stashing Y chromosome"
+    echo "xx sample, stashing Y chromosome"
     mv *chrY* raw/attic
     $BINDIR/removechain.pl raw/$OUTPREFIX.hap1.chain chrY           | sed 's/paternal/hap1/' > $OUTPREFIX.hap1.chain
     $BINDIR/removechain.pl raw/$OUTPREFIX.hap2.chain chrM chrY      | sed 's/maternal/hap2/' > $OUTPREFIX.hap2.chain
