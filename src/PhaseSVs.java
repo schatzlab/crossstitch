@@ -15,7 +15,7 @@ import java.util.TreeMap;
 
 public class PhaseSVs
 {
-	// The facotr by which the votes for one haplotype must be higher than the other to change a homozygous call to heterozygous
+	// The factor by which the votes for one haplotype must be higher than the other to change a homozygous call to heterozygous
 	static int OVERRULE_HOMOZYGOUS_FACTOR = 5;
 	
 	// The minimum read support needed for a homozygous variant to switch to heterozygous
@@ -118,15 +118,15 @@ public class PhaseSVs
 		}
 		String faidxCommand = String.format("%s faidx %s %s:%d-%d", SAMTOOLS_PATH, refFn, chr, startPos, endPos);
 		Process child = Runtime.getRuntime().exec(faidxCommand);
-        InputStream seqStream = child.getInputStream();
+		InputStream seqStream = child.getInputStream();
 		Scanner seqInput = new Scanner(seqStream);
 		
 		// Make sure it produced an actual output
 		if(!seqInput.hasNext())
-        {
-        	seqInput.close();
-        	throw new Exception("samtools faidx did not produce an output: " + faidxCommand);
-        }
+		{
+			seqInput.close();
+			throw new Exception("samtools faidx did not produce an output: " + faidxCommand);
+		}
 		// Read in and ignore sequence name
 		seqInput.next();
 		
@@ -134,7 +134,7 @@ public class PhaseSVs
 		if(!seqInput.hasNext())
 		{
 			seqInput.close();
-        	throw new Exception("samtools faidx produced a sequence name but not an actual sequence: " + faidxCommand);
+			throw new Exception("samtools faidx produced a sequence name but not an actual sequence: " + faidxCommand);
 		}
 		
 		// Concatenate all lines of the output sequence
