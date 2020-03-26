@@ -2,9 +2,6 @@
 
 CrossStitch creates personalized reference-quality diploid genomes without de novo assembly. The basic idea is rather than trying to assemble a genome from scratch, it will leverage a reference genome as a baseline, and then update it with any SNPs, indels, or structural variations present in your sample. For the best results, the data requirements are similar to a de novo assembly: Illumina-based data for SNPs and Indels, Long Read data for structural variants, and Phasing data such as 10X Linked Reads and/or HiC data. However the CrossStitch process is much less demanding, produces more accurate results, and the process is much more predictable. The output will be a phased VCF file with all variants (SNPs, Indels, and SVs) as well as a phased personalized diploid genome including 2 copies of each chromosome with the variants inserted at the correct locations.
 
-[Slides describing CrossStitch](http://schatz-lab.org/presentations/2018/2018.PAG.DiploidGenomes.ShortLongLinkedReads.pdf)
-
-
 
 ## Installation
 
@@ -37,7 +34,7 @@ Details:
   long_reads.bam:                    BAM file of long reads aligned with NGMLR
   genome.fa:                         Reference genome used
   outputprefix:                      Prefix for output files
-  gender:                            "male" or "female", used to ensure sex chromosomes are correctly used
+  karyotype:                         "xy" or "xx", used to ensure sex chromosomes are correctly used
   refine:                            optionally refine structural variant calls with local assembly (1=refine, 0=skip)
 ```
 
@@ -45,23 +42,7 @@ Details:
 
 The unphased structural variant must include the names of supporting reads for insertions (sniffles -n [x], where x > 0).
 
-In addition, gnu-parallel must be installed.  On systems with conda, this can be installed by running the following command:
-
-```
-conda install parallel
-```
-
-To run the insertion refinement on its own, use the following:
-
-```
-$ refineinsertions.sh unphased_structural_variants.vcf long_reads.bam genome.fa outputfile
- 
-Details:
-  unphased_structural_variants.vcf:  VCF file of structural variants identified using Sniffles
-  long_reads.bam:                    BAM file of long reads aligned with NGMLR
-  genome.fa:                         Reference genome used
-  outputfile:                        Name of new VCF file to output
-```
+To run the insertion refinement on its own, use the Iris submodule.  It has dependencies on minimap2, racon, and samtools.
 
 ## Simulations for testing
 
