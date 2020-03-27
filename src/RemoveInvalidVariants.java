@@ -342,7 +342,7 @@ public class RemoveInvalidVariants {
 		
 		input.close();
 		out.close();
-		errOut.println();
+		errOut.close();
 	}
 	
 	/*
