@@ -221,7 +221,7 @@ fi
 
 if [ ! -r data/matesAll.phased.VCF ]
 then
-  echo "phase pacbio reads"
+  echo "phase matepairs"
   HAPCUT2 --fragments data/matesAll.hairs --vcf data/illAll.vcf --output data/matesAll --outvcf 1
 fi
 
@@ -240,34 +240,19 @@ fi
 #   echo "phase pacbio reads"
 #   HAPCUT2 --fragments data/pbAll.hairs --vcf data/illAll.vcf --output data/pbAll.hapcut
 # fi
-# 
-# if [ ! -r data/pbAll.phased.vcf ]
-# then
-#   echo "Making a new phased vcf file from pacbio reads"
-#   java -jar ~/build/fgbio/target/scala-2.12/fgbio-0.2.1-SNAPSHOT.jar HapCutToVcf -i data/pbAll.hapcut -v data/illAll.vcf -o data/pbAll.phased.vcf
-# fi
 
-refine='1'
+refine='0'
 
-if [ "$refine" -gt 0 ]
-    then 
-    if [ ! -r data/pbAll.refined.vcf ]
-    then
-      echo "Refining SVs"
-      ../../sv/go.sh -v data/pbAll.sniffles.vcf -b data/pbAll.bam -f base.fa -o data/pbAll.refined.vcf
-    fi
-fi
-
-if [ ! -r data/pbAll.refined.vcf ]
+if [ ! -r data/crossstitch.spliced.scrubbed.vcf ]
 then
-    cp data/pbAll.sniffles.vcf data/pbAll.refined.vcf
-fi
-
-if [ ! -r data/spliced.vcf ]
-then
-  echo "Splicing in phased SVs"
-  ../../src/splicephase.pl data/matesAll.phased.vcf data/pbAll.refined.vcf data/pbAll.hairs data/spliced.vcf base.fa >& data/spliced.vcf.log
-  cat data/spliced.vcf.log
+  echo "running crossstitch"
+  cd data
+  ../../../src/crossstitch.sh matesAll.phased.VCF \
+                              pbAll.sniffles.vcf \
+                              pbAll.bam \
+                              ../base.fa \
+                              crossstitch xx $refine
+  cd ..
 fi
 
 if [ ! -r data/spliced.vcf.svphase.status ]
@@ -277,37 +262,23 @@ then
   cat data/spliced.vcf.svphase.status
 fi
 
-
-if [ ! -r data/spliceddiploid/maternal.chain ]
-then
-  mkdir -p data/spliceddiploid
-  cd data/spliceddiploid
-  ln -s ../spliced.vcf
-  ln -s ../../base.fa
-
-  echo "constructing diploid sequence with SNPs and SVs"
-  java -jar $VCF2DIPLOID -id unknown -chr base.fa -vcf spliced.vcf >& vcf2diploid.log
-  cd ../..
-fi
-
-if [ ! -r data/spliceddiploid/Am.delta ]
+if [ ! -r data/crossstitch.alleleseq/A1.delta ]
 then
   echo "aligning diploid to truth"
-  nucmer -maxmatch -D 10 data/mutA.fasta data/spliceddiploid/chr1_unknown_maternal.fa -p data/spliceddiploid/Am >& /dev/null
-  nucmer -maxmatch -D 10 data/mutB.fasta data/spliceddiploid/chr1_unknown_maternal.fa -p data/spliceddiploid/Bm >& /dev/null
-  nucmer -maxmatch -D 10 data/mutA.fasta data/spliceddiploid/chr1_unknown_paternal.fa -p data/spliceddiploid/Ap >& /dev/null
-  nucmer -maxmatch -D 10 data/mutB.fasta data/spliceddiploid/chr1_unknown_paternal.fa -p data/spliceddiploid/Bp >& /dev/null
+  nucmer -maxmatch -D 10 data/mutA.fasta data/crossstitch.alleleseq/crossstitch.chr1.hap1.fa -p data/crossstitch.alleleseq/A1 >& /dev/null
+  nucmer -maxmatch -D 10 data/mutB.fasta data/crossstitch.alleleseq/crossstitch.chr1.hap1.fa -p data/crossstitch.alleleseq/B1 >& /dev/null
+  nucmer -maxmatch -D 10 data/mutA.fasta data/crossstitch.alleleseq/crossstitch.chr1.hap2.fa -p data/crossstitch.alleleseq/A2 >& /dev/null
+  nucmer -maxmatch -D 10 data/mutB.fasta data/crossstitch.alleleseq/crossstitch.chr1.hap2.fa -p data/crossstitch.alleleseq/B2 >& /dev/null
 fi
 
-if [ ! -r data/spliceddiploid/Am.1delta ]
+if [ ! -r data/crossstitch.alleleseq/A1.1delta ]
 then
   echo "filtering alignments"
-  delta-filter -1 data/spliceddiploid/Am.delta > data/spliceddiploid/Am.1delta
-  delta-filter -1 data/spliceddiploid/Bm.delta > data/spliceddiploid/Bm.1delta
-  delta-filter -1 data/spliceddiploid/Ap.delta > data/spliceddiploid/Ap.1delta
-  delta-filter -1 data/spliceddiploid/Bp.delta > data/spliceddiploid/Bp.1delta
+  delta-filter -1 data/crossstitch.alleleseq/A1.delta > data/crossstitch.alleleseq/A1.1delta
+  delta-filter -1 data/crossstitch.alleleseq/B1.delta > data/crossstitch.alleleseq/B1.1delta
+  delta-filter -1 data/crossstitch.alleleseq/A2.delta > data/crossstitch.alleleseq/A2.1delta
+  delta-filter -1 data/crossstitch.alleleseq/B2.delta > data/crossstitch.alleleseq/B2.1delta
 fi
-
 
 
 SHOWCOORDS=1
@@ -319,9 +290,9 @@ fi
 
 if [ $SHOWCOORDS == "1" ]
 then
-  echo "Am"; show-coords -rcl data/spliceddiploid/Am.1delta
-  echo "Bm"; show-coords -rcl data/spliceddiploid/Bm.1delta
-  echo "Ap"; show-coords -rcl data/spliceddiploid/Ap.1delta
-  echo "Bp"; show-coords -rcl data/spliceddiploid/Bp.1delta
+  echo "Am"; show-coords -rcl data/crossstitch.alleleseq/A1.1delta
+  echo "Bm"; show-coords -rcl data/crossstitch.alleleseq/B1.1delta
+  echo "Ap"; show-coords -rcl data/crossstitch.alleleseq/A2.1delta
+  echo "Bp"; show-coords -rcl data/crossstitch.alleleseq/B2.1delta
 fi
 
