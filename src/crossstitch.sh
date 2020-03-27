@@ -18,7 +18,7 @@ then
   exit
 fi
 
-BINDIR=`dirname $(readlink -f "$0")`
+BINDIR=`cd "$(dirname "$0")" ; pwd -P`
 PHASEDSNPS=$1
 STRUCTURALVARIANTS=$2
 LONGREADSBAM=$3
@@ -30,6 +30,11 @@ REFINE=$7
 VCF2DIPLOIDJAR=$BINDIR/../vcf2diploid/vcf2diploid.jar
 EXTRACTHAIRS=/work-zfs/mschatz1/mkirsche/github/HapCUT2/build/extractHAIRS
 GZIP=pigz
+
+if [ $USER = "mschatz" ]
+then
+  EXTRACTHAIRS=extractHAIRS
+fi
 
 echo "crossstich.sh"
 echo "  BINDIR: $BINDIR"
@@ -78,7 +83,7 @@ fi
 
 ## Sanity checks passed, begin analysis
 
-GENOME=`readlink -f $GENOME`
+GENOME="$(cd "$(dirname "$GENOME")" ; pwd -P)/$(basename $GENOME)"
 AS=$OUTPREFIX.alleleseq
 VCFID=`head -5000 $PHASEDSNPS | grep '#CHROM' | awk '{print $10}'`
 
@@ -139,11 +144,11 @@ fi
 if [ ! -r $AS ]
 then
   mkdir -p $AS
-  cd $AS
+  pushd $AS
 
   echo "constructing diploid sequence with SNPs and SVs"
   java -Xmx400000m -jar $VCF2DIPLOIDJAR -id $VCFID -pass -chr $GENOME -vcf ../$OUTPREFIX.spliced.scrubbed.vcf >& vcf2diploid.log
-  cd ..
+  popd
 fi
 
 if [ ! -r $AS.raw.tgz ]
@@ -156,7 +161,7 @@ if [ ! -r $AS/raw/ ]
 then
   echo "renaming files"
 
-  cd $AS
+  pushd $AS
 
   mkdir -p raw
   mkdir -p raw/attic
@@ -164,31 +169,52 @@ then
   for i in `ls *_$VCFID*`
   do 
     echo " $i"
-    mv $i $OUTPREFIX.$i
+    j=`echo $i | sed "s/_$VCFID//"`
+    mv $i $OUTPREFIX.$j
   done
 
-  rename _$VCFID '' *_$VCFID*
+  for i in `/bin/ls *_paternal*`
+  do 
+    j=`echo $i | sed s/_paternal/.hap1/`
+    mv $i $j
+  done
 
-  rename paternal hap1 *paternal*
-  rename maternal hap2 *maternal*
+  for i in `/bin/ls *_maternal*`
+  do 
+    j=`echo $i | sed s/_maternal/.hap2/`
+    mv $i $j
+  done
 
-  rename _hap1 .hap1 *_hap1*
-  rename _hap2 .hap2 *_hap2*
+  mv paternal.chain hap1.chain
+  mv maternal.chain hap2.chain
 
   mv hap1.chain raw/$OUTPREFIX.hap1.chain
   mv hap2.chain raw/$OUTPREFIX.hap2.chain
 
-  mv $OUTPREFIX.chrM.hap2.fa raw/attic
+  if [ -r $OUTPREFIX.chrM.hap2.fa ]
+  then
+    mv $OUTPREFIX.chrM.hap2.fa raw/attic
+  fi
 
   if [[ $KARYOTYPE == "xy" ]]
   then
     echo "xy sample, making X and Y haploid"
-    mv *chrX.hap2.fa *chrY.hap2.fa raw/attic
+
+    if [ -r $OUTPREFIX.chrX.hap2.fa ]
+    then
+      mv *chrX.hap2.fa *chrY.hap2.fa raw/attic
+    fi
+
     cat raw/$OUTPREFIX.hap1.chain                                   | sed 's/paternal/hap1/' > $OUTPREFIX.hap1.chain
     $BINDIR/removechain.pl raw/$OUTPREFIX.hap2.chain chrM chrX chrY | sed 's/maternal/hap2/' > $OUTPREFIX.hap2.chain
   else
     echo "xx sample, stashing Y chromosome"
-    mv *chrY* raw/attic
+
+    if [ -r $OUTPREFIX.chrY.hap1.fa ]
+    then
+      mv *chrY* raw/attic
+    fi
+
     $BINDIR/removechain.pl raw/$OUTPREFIX.hap1.chain chrY           | sed 's/paternal/hap1/' > $OUTPREFIX.hap1.chain
     $BINDIR/removechain.pl raw/$OUTPREFIX.hap2.chain chrM chrY      | sed 's/maternal/hap2/' > $OUTPREFIX.hap2.chain
   fi
@@ -216,7 +242,7 @@ then
     sed 's/maternal/hap2/' raw/$i > $i
   done
 
-  cd ..
+  popd
 fi
 
 if [ ! -r $AS/$OUTPREFIX.hap1.fa.gz ]
