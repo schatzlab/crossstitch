@@ -1,7 +1,7 @@
 #!/bin/bash
 
-## Make sure HAPCUT, NGMLR, SURVIVOR-LRSIM, SNIFFLES, SAMTOOLS are in your path
-## also conda install sbt freebayes
+## Make sure HAPCUT, NGMLR, SURVIVOR-LRSIM, SNIFFLES, SAMTOOLS, BWA are in your path
+## also conda install freebayes mason
 
 #set -xv
 set -e
@@ -18,6 +18,12 @@ SNIFFLES=/work-zfs/mschatz1/mschatz/build/Sniffles/bin/sniffles-core-1.0.6/sniff
 SURVIVOR=/work-zfs/mschatz1/mschatz/build/SURVIVOR/Debug/SURVIVOR
 #FGBIO=/home-3/mschatz1@jhu.edu/build/fgbio/target/scala-2.12/fgbio-0.2.1-SNAPSHOT.jar
 FGBIO=/home-3/mschatz1@jhu.edu/build/fgbio/target/scala-2.12/fgbio-0.6.1.jar
+elif [ $USER = "mschatz" ]
+then
+VCF2DIPLOID=/Users/mschatz/build/crossstitch/vcf2diploid/vcf2diploid.jar
+SNIFFLES=/Users/mschatz/build/Sniffles/bin/sniffles-core-1.0.11/sniffles
+SURVIVOR=/Users/mschatz/build/SURVIVOR/Debug/SURVIVOR
+FGBIO=/Users/mschatz/build/crossstitch/src/fgbio-1.1.0.jar
 fi
 
 
@@ -60,13 +66,13 @@ fi
 if [ ! -r data/pbA.fa ]
 then
   echo "Simulating PacBio reads for hapA"
-  $SURVIVOR 2 simul data/mutA.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbA.fa
+  $SURVIVOR simreads data/mutA.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbA.fa
 fi
 
 if [ ! -r data/pbB.fa ]
 then
   echo "Simulating PacBio reads for hapB"
-  $SURVIVOR 2 simul data/mutB.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbB.fa
+  $SURVIVOR simreads data/mutB.fasta ~/build/SURVIVOR/HG002_Pac_error_profile_bwa.txt 30 data/pbB.fa
 fi
 
 if [ ! -r data/pbAll.fa ]
@@ -89,14 +95,14 @@ if [ ! -r data/pbAll.sniffles.vcf ]
 then
   echo "Calling variants with Sniffles"
   READSTOPHASE=1000
-  $SNIFFLES -s $SNIFFLES_MIN_READS --min_het_af $SNIFFLES_MIN_HET_AF  -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype --report_seq --ignore_sd -n $READSTOPHASE
+  $SNIFFLES -s $SNIFFLES_MIN_READS --min_het_af $SNIFFLES_MIN_HET_AF  -m data/pbAll.bam -v data/pbAll.sniffles.vcf --cluster --genotype --ignore_sd -n $READSTOPHASE
 fi
 
 
 ## Simulate Illumina Reads
 ###############################################################################
 
-sed -i '/^\s*$/d' data/mutA.fasta
+# sed -i '/^\s*$/d' data/mutA.fasta
 
 if [ ! -r data/illA.1.fq ]
 then
@@ -106,7 +112,7 @@ then
   mason_simulator -ir data/mutA.fasta -n $numpairs -o data/illA.1.fq -or data/illA.2.fq --num-threads $THREADS
 fi
 
-sed -i '/^\s*$/d' data/mutB.fasta
+# sed -i '/^\s*$/d' data/mutB.fasta
 
 if [ ! -r data/illB.1.fq ]
 then
@@ -127,7 +133,7 @@ fi
 if [ ! -r data/illAll.bam ]
 then
   echo "Align illumina reads and sort"
-  bwa mem base.fa data/illAll.1.fq data/illAll.2.fq -t $THREADS > data/illAll.sam
+  bwa mem -t $THREADS base.fa data/illAll.1.fq data/illAll.2.fq > data/illAll.sam
   samtools view -b data/illAll.sam -o data/illAll.unsorted.bam
   samtools sort data/illAll.unsorted.bam -o data/illAll.bam
   samtools index data/illAll.bam
@@ -194,11 +200,10 @@ then
   cat data/matesA.2.fq data/matesB.2.fq | paste - - - - | awk '{c++; print "@mates"c"/2"; print $2; print "+"; print $4}' > data/matesAll.2.fq
 fi
 
-
 if [ ! -r data/matesAll.bam ]
 then
   echo "Align matesumina reads and sort"
-  bwa mem -I $MATE_MEA base.fa data/matesAll.1.fq data/matesAll.2.fq -t $THREADS > data/matesAll.sam
+  bwa mem -t $THREADS -I $MATE_MEA base.fa data/matesAll.1.fq data/matesAll.2.fq > data/matesAll.sam
   samtools view -b data/matesAll.sam -o data/matesAll.unsorted.bam
   samtools sort data/matesAll.unsorted.bam -o data/matesAll.bam
   samtools index data/matesAll.bam
@@ -214,19 +219,11 @@ then
   extractHAIRS --maxIS $MATE_MAX --minIS $MATE_MIN --bam data/matesAll.bam --VCF data/illAll.vcf --out data/matesAll.hairs
 fi
 
-if [ ! -r data/matesAll.hapcut ]
+if [ ! -r data/matesAll.phased.VCF ]
 then
   echo "phase pacbio reads"
-  HAPCUT2 --fragments data/matesAll.hairs --vcf data/illAll.vcf --output data/matesAll.hapcut
+  HAPCUT2 --fragments data/matesAll.hairs --vcf data/illAll.vcf --output data/matesAll --outvcf 1
 fi
-
-if [ ! -r data/matesAll.phased.vcf ]
-then
-  echo "Making a new phased vcf file from mates phasing + illumina snps"
-  java -jar $FGBIO HapCutToVcf -i data/matesAll.hapcut -v data/illAll.vcf -o data/matesAll.phased.vcf.gz
-  gunzip data/matesAll.phased.vcf.gz
-fi
-
 
 
 ## Lookup the alleles of the PB reads and phase the SVs
@@ -235,7 +232,7 @@ fi
 if [ ! -r data/pbAll.hairs ]
 then
   echo "extracting pacbio-hairs from snps"
-  extractHAIRS --mbq 0 --bam data/pbAll.bam --VCF data/illAll.vcf --out data/pbAll.hairs
+  extractHAIRS --mbq 4 --bam data/pbAll.bam --VCF data/illAll.vcf --out data/pbAll.hairs
 fi
 
 # if [ ! -r data/pbAll.hapcut ]
