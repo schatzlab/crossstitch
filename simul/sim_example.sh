@@ -1,29 +1,28 @@
 #!/bin/bash
 
-## Make sure HAPCUT, NGMLR, SURVIVOR-LRSIM, SNIFFLES, SAMTOOLS, BWA are in your path
-## also conda install freebayes mason
+## Make sure  NGMLR, SURVIVOR-LRSIM, SNIFFLES are in your path
+## conda install freebayes mason hapcut2 bwa samtools survivor
+##
+## SURVIVOR-LRSIM comes from:
+## git clone https://github.com/aquaskyline/LRSIM.git
+## cd LRSIM/SURVIVORSrc/Debug/
+## make -j
+## then simlink SURVIVOR to SURVIVOR-LRSIM
 
 #set -xv
 set -e
 
-VCF2DIPLOID=/home/mkirsche/build/vcf2diploid/vcf2diploid.jar
 SNIFFLES=/home/mkirsche/bin/sniffles
 SURVIVOR=/home/mkirsche/bin/SURVIVOR
 SURVIVORLRSIM=SURVIVOR-LRSIM
-FGBIO=/home/mkirsche/build/fgbio/target/scala-2.12/fgbio-0.4.0-SNAPSHOT.jar
 if [ $USER = "mschatz1@jhu.edu" ]
 then
-VCF2DIPLOID=/work-zfs/mschatz1/mschatz/build/vcf2diploid/vcf2diploid.jar
-SNIFFLES=/work-zfs/mschatz1/mschatz/build/Sniffles/bin/sniffles-core-1.0.6/sniffles
-SURVIVOR=/work-zfs/mschatz1/mschatz/build/SURVIVOR/Debug/SURVIVOR
-#FGBIO=/home-3/mschatz1@jhu.edu/build/fgbio/target/scala-2.12/fgbio-0.2.1-SNAPSHOT.jar
-FGBIO=/home-3/mschatz1@jhu.edu/build/fgbio/target/scala-2.12/fgbio-0.6.1.jar
+SNIFFLES=sniffles
+SURVIVOR=SURVIVOR
 elif [ $USER = "mschatz" ]
 then
-VCF2DIPLOID=/Users/mschatz/build/crossstitch/vcf2diploid/vcf2diploid.jar
-SNIFFLES=/Users/mschatz/build/Sniffles/bin/sniffles-core-1.0.11/sniffles
-SURVIVOR=/Users/mschatz/build/SURVIVOR/Debug/SURVIVOR
-FGBIO=/Users/mschatz/build/crossstitch/src/fgbio-1.1.0.jar
+SNIFFLES=sniffles
+SURVIVOR=SURVIVOR
 fi
 
 
@@ -242,6 +241,7 @@ fi
 # fi
 
 refine='0'
+refine='1'
 
 if [ ! -r data/crossstitch.spliced.scrubbed.vcf ]
 then
