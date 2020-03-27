@@ -258,7 +258,7 @@ fi
 if [ ! -r data/spliced.vcf.svphase.status ]
 then
   echo "Checking phasing status"
-  ../compare_svcalls.pl data/svs.summary data/spliced.vcf.svphase > data/spliced.vcf.svphase.status
+  ../compare_svcalls.pl data/svs.summary data/crossstitch.spliced.vcf.svphase > data/spliced.vcf.svphase.status
   cat data/spliced.vcf.svphase.status
 fi
 
