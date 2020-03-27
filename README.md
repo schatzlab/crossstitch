@@ -15,6 +15,8 @@ $ make
 $ git clone --recursive https://github.com/schatzlab/crossstitch.git
 $ cd vcf2diploid
 $ make
+$ cd ../Iris
+$ build.sh
 
 ## After this you will need to add HapCUT2/build/extractHAIRS to your path or edit src/crossstitch.sh with the correct path
 
